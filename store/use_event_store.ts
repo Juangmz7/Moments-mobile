@@ -1,19 +1,20 @@
-import { Event } from "@/models/Event";
+import { EventRequestDTO } from "@/domain/dto/event_request_dto";
+import { EventItem } from "@/domain/entities/event_item";
 import { create } from "zustand";
 
 // This store manages events data and actions 
 // It interacts with a backend API to fetch and manipulate event data
 
 interface EventStore {
-  myEvents: Event[];
-  otherEvents: Event[];
+  myEvents: EventItem[];
+  otherEvents: EventItem[];
   loading: boolean;
   error: string | null;
 
   // Actions
   fetchMyEvents: () => Promise<void>;
   fetchOtherEvents: () => Promise<void>;
-  addMyEvent: (data: Omit<Event, "id" | "organiser">) => Promise<void>; // Organiser will be set server-side
+  createEvent: (data: EventRequestDTO) => Promise<void>; 
   deleteMyEvent: (id: string) => Promise<void>;
 }
 
@@ -31,11 +32,14 @@ export const useEventStore = create<EventStore>((set, get) => ({
         // TODO
     },
 
-    addMyEvent: async (data) => {
+    createEvent: async (data) => {
         // TODO
+        console.log("Nuevo evento creado:", data);
     },
         
     deleteMyEvent: async (id) => {
         // TODO
     },
+
+    // TODO: Additional actions like updateEvent, joinEvent, leaveEvent can be added here
 }));
