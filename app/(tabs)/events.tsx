@@ -1,8 +1,8 @@
 import EventCard from "@/components/events/event_card";
 import { EventFormData } from "@/components/events/event_form";
 import EventModalFormWrapper from "@/components/events/event_modal_form_wrapper";
-import { EventItem } from "@/domain/entities/event_item";
-import { mapFormToRequestDTO } from "@/domain/infrastructure/mappers/event_mapper";
+import { EventMapper } from "@/domain/infrastructure/mappers/event_mapper";
+import { EventItem } from "@/domain/model/entities/event_item";
 import { useEventStore } from "@/store/use_event_store";
 import React, { useState } from "react";
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -11,23 +11,19 @@ import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native
 export default function EventsPage() {
     // Access to events goblal state
   const eventState = useEventStore;
-  const [events, setEvents] = useState<EventItem[]>([]); // User fetch of state instead
+  const events = eventState((state) => state.otherEvents);
   const [showForm, setShowForm] = useState(false);
   
     
   function handleFormSubmit(data: EventFormData) {
     eventState.getState()
-        .createEvent(
-            mapFormToRequestDTO(data)
-        )
-    setShowForm(false);
+        .createEvent(EventMapper.fromForm(data))
   }
-
     return (
         <View style={styles.container}>
             <Text style={styles.header}>Moments Near You</Text>
 
-            { events.length === 1 ? (
+            { events.length === 0 ? (
                 <Text style={styles.emptyText}>No events yet. Create your first one!</Text>
             ) : (
                     <FlatList
