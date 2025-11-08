@@ -1,9 +1,8 @@
 // components/EventCard.tsx
-import { View, Text } from "react-native";
-import { Event } from "@/models/Event";
-import { StyleSheet } from "react-native";
+import { EventItem } from "@/domain/entities/event_item";
+import { StyleSheet, Text, View } from "react-native";
 
-export default function EventCard({event}: { event: Event }) {
+export default function EventCard({event}: { event: EventItem }) {
   return (
     <View style={styles.eventCard}>
       <Text style={styles.eventTitle}>{event.title}</Text>
