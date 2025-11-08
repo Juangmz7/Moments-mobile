@@ -1,4 +1,4 @@
-import { Modal, View, StyleSheet, KeyboardAvoidingView, ScrollView, Platform } from "react-native";
+import { Modal, View, StyleSheet, KeyboardAvoidingView, ScrollView, Platform, SafeAreaView } from "react-native";
 import EventForm, { EventFormData } from "./event_form";
 
 export default function CreateEventModal(
@@ -18,23 +18,25 @@ export default function CreateEventModal(
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <KeyboardAvoidingView
-        // Safe area for iOS devices
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.overlay}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.modalContainer}>
-            <EventForm
+        <SafeAreaView style={styles.safeArea}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.modalContainer}>
+              <EventForm
                 initialValues={initialValues}
                 onFormSubmitted={(data: EventFormData) => onFormSubmitted(data)}
                 onClose={onClose}
                 visible={visible}
             />
-          </View>
-        </ScrollView>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
       </KeyboardAvoidingView>
     </Modal>
   );
@@ -44,26 +46,29 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
   },
   safeArea: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)", 
+    backgroundColor: "rgba(0,0,0,0.4)",
   },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 40,
+    paddingVertical: 30,
+    paddingHorizontal: 16,
   },
   modalContainer: {
     backgroundColor: "white",
-    width: "90%",
+    width: "100%",
+    maxWidth: 600,        
     borderRadius: 16,
     padding: 20,
     elevation: 5,
-    maxHeight: "85%",
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
   },
 });
 

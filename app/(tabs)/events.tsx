@@ -20,13 +20,14 @@ export default function EventsPage() {
         .createEvent(
             mapFormToRequestDTO(data)
         )
+    setShowForm(false);
   }
 
     return (
         <View style={styles.container}>
             <Text style={styles.header}>Moments Near You</Text>
 
-            { events.length === 0 ? (
+            { events.length === 1 ? (
                 <Text style={styles.emptyText}>No events yet. Create your first one!</Text>
             ) : (
                     <FlatList
