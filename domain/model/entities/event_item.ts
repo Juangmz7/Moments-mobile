@@ -1,5 +1,4 @@
 import { InterestTag } from "../enums/interest_tag";
-import { EventOrganiser } from "./event_organiser";
 
 export interface EventItem {
     id: string
