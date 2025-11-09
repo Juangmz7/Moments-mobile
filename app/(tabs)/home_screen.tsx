@@ -1,9 +1,9 @@
 import { View, Text } from 'react-native';
 
-export default function DiscoverPage() {
+export default function ChatPage() {
     return (
         <View>
-            <Text>Discover</Text>
+            <Text>HomePage</Text>
         </View>
     )
 }

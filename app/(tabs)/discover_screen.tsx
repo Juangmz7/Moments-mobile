@@ -1,37 +1,44 @@
-import EventCard from "@/components/events/event_card";
 import { EventFormData } from "@/components/events/event_form";
+import EventList from "@/components/events/event_list";
 import EventModalFormWrapper from "@/components/events/event_modal_form_wrapper";
+import FilterDropdownButton from "@/components/shared/FilterDropdownButton";
 import { EventMapper } from "@/domain/infrastructure/mappers/event_mapper";
-import { EventItem } from "@/domain/model/entities/event_item";
 import { useEventStore } from "@/store/use_event_store";
 import React, { useState } from "react";
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 
-export default function EventsPage() {
+export default function DiscoverPage() {
     // Access to events goblal state
   const eventState = useEventStore;
   const events = eventState((state) => state.otherEvents);
   const [showForm, setShowForm] = useState(false);
-  
     
   function handleFormSubmit(data: EventFormData) {
     eventState.getState()
         .createEvent(EventMapper.fromForm(data))
+    setShowForm(false)
   }
+
+  const filterOptions: [string, () => void][] = [
+        ["Location", () => {}],
+        ["Interests", () => {}],
+        ["Date", () => {}],
+    ]
     return (
         <View style={styles.container}>
-            <Text style={styles.header}>Moments Near You</Text>
-
-            { events.length === 0 ? (
-                <Text style={styles.emptyText}>No events yet. Create your first one!</Text>
-            ) : (
-                    <FlatList
-                        data={events}
-                        keyExtractor={(item) => item.id} 
-                        renderItem={({ item }) => <EventCard event={item} />} 
-                    />
-            )}
+            <View style={styles.headerRow}>
+                <Text style={styles.header}>Discover new events</Text>
+                <FilterDropdownButton
+                options={filterOptions}
+                />
+            </View>
+           <EventList
+                events={events}
+                paddingBottom={0}
+                paddingTop={0}
+                emptyComponentLabel="No events yet"
+            />
 
             {/* Floating Add Button */}
             <TouchableOpacity style={styles.addButton} onPress={() => {setShowForm(true)}}>
@@ -52,7 +59,7 @@ export default function EventsPage() {
 // Styles for events page
 const styles = StyleSheet.create({
     container: { flex: 1, padding: 20, backgroundColor: "#f9f9f9" },
-    header: { fontSize: 24, fontWeight: "bold", marginBottom: 12, marginTop: 30, },
+    header: { fontSize: 24, fontWeight: "bold", marginBottom: 12, marginTop: 15 },
     emptyText: { color: "#999", textAlign: "center", marginTop: 40 },
     addButton: {
         position: "absolute",
@@ -67,5 +74,11 @@ const styles = StyleSheet.create({
         elevation: 3,
     },
     addButtonText: { color: "white", fontSize: 36, lineHeight: 36 },
-    
+    headerRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginTop: 30,
+        marginBottom: 12,
+    },  
 });

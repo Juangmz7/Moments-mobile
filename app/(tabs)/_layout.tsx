@@ -12,9 +12,9 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="events"
+        name="home_screen"
         options={{
-          title: "Events",
+          title: "Home",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar" color={color} size={size} />
           )
@@ -22,7 +22,7 @@ export default function TabsLayout() {
       />
 
       <Tabs.Screen
-        name="discover"
+        name="discover_screen"
         options={{
           title: "Discover",
           tabBarIcon: ({ color, size }) => (
@@ -32,7 +32,7 @@ export default function TabsLayout() {
       />
 
       <Tabs.Screen
-        name="chat"
+        name="chat_screen"
         options={{
           title: "Chat",
           tabBarIcon: ({ color, size }) => (
@@ -42,7 +42,7 @@ export default function TabsLayout() {
         />
 
       <Tabs.Screen
-        name="profile"
+        name="profile_screen"
         options={{
           title: "Profile",
           tabBarIcon: ({ color, size }) => (
