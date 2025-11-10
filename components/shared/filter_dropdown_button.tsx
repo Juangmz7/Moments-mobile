@@ -89,7 +89,7 @@ export default function DropdownButtonFilter({
   );
 }
 
-const MENU_WIDTH = 220; // narrow menu width
+const MENU_WIDTH = 200; // narrow menu width
 
 const styles = StyleSheet.create({
   trigger: {
@@ -101,11 +101,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     backgroundColor: "#007AFF",
     borderWidth: 1,
-    borderColor: "#007AFF", // match bg
+    borderColor: "#007AFF",
   },
-  // ← trigger text in white
   triggerText: { fontWeight: "700", color: "#FFFFFF" },
-  // caret also white to match (optional, looks better)
   caret: { marginLeft: 4, color: "#FFFFFF" },
 
   // overlay
@@ -113,7 +111,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.25)",
     paddingHorizontal: 20,
-    paddingTop: 100, // drop the menu a bit from the header
+    paddingTop: 100,
   },
 
   // right align the menu
@@ -121,28 +119,35 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
 
-  // narrow menu card aligned to the right
+  // narrower menu card aligned to the right
   menuCard: {
     width: MENU_WIDTH,
     backgroundColor: "#fff",
     borderRadius: 14,
     paddingVertical: 6,
-    // shadows
     shadowColor: "#000",
     shadowOpacity: 0.15,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
     elevation: 8,
   },
+
+  // center each item’s content
   itemRow: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: 10,
+    alignItems: "center",         // center horizontally
+    justifyContent: "center",
   },
   itemRowActive: {
     backgroundColor: "#007AFF12",
+    borderRadius: 20,
   },
-  itemText: { color: "#222", fontSize: 16 },
-  itemTextActive: { color: "#007AFF", fontWeight: "700" },
+
+  // centered text
+  itemText: { color: "#222", fontSize: 16, textAlign: "center" },      // centered
+  itemTextActive: { color: "#007AFF", fontWeight: "700", textAlign: "center" }, //  centered
   separator: { height: 6 },
 });
+
