@@ -6,6 +6,7 @@ import {
   Text,
   ViewStyle,
   StyleProp,
+  View,
 } from "react-native";
 import EventCard from "./event_card";
 
@@ -15,7 +16,8 @@ type Props = {
   headerLabel?: string;
   paddingTop?: number;
   paddingBottom?: number;
-  contentContainerStyle?: StyleProp<ViewStyle>; // ← permite controlar padding desde fuera
+  // Allow external override of the FlatList content container padding/margins
+  contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
 export default function EventList({
@@ -26,6 +28,7 @@ export default function EventList({
   paddingBottom = 0,
   contentContainerStyle,
 }: Props) {
+  // Render a compact header only when provided (avoid extra vertical space)
   const header =
     headerLabel && headerLabel.trim().length > 0 ? (
       <Text style={styles.header}>{headerLabel}</Text>
@@ -36,24 +39,40 @@ export default function EventList({
       data={events}
       keyExtractor={(item: EventItem) => String(item.id)}
       renderItem={({ item }) => <EventCard event={item} />}
-      ListHeaderComponent={header} // ← null si no hay label → no hay hueco
+
+      // Header only if present → no empty spacing otherwise
+      ListHeaderComponent={header}
+
+      // Empty state only if label provided
       ListEmptyComponent={
         emptyComponentLabel ? (
           <Text style={styles.emptyText}>{emptyComponentLabel}</Text>
         ) : null
       }
+
+      // Add a small vertical gap between items
+      ItemSeparatorComponent={() => <View style={styles.separator} />}
+
+      // Keep top/bottom paddings minimal and externally controllable
       contentContainerStyle={[
         { paddingTop, paddingBottom },
-        contentContainerStyle, // ← override externo
+        contentContainerStyle,
       ]}
-      contentInsetAdjustmentBehavior="never" // ← evita insets automáticos (iOS)
+
+      // Prevent iOS from auto-insetting content at the top
+      contentInsetAdjustmentBehavior="never"
       showsVerticalScrollIndicator
     />
   );
 }
 
 const styles = StyleSheet.create({
-  // Márgenes muy contenidos para no empujar la lista
+  // Compact header so it doesn’t push the list down
   header: { fontSize: 18, fontWeight: "700", marginTop: 6, marginBottom: 6 },
+
+  // Subtle empty-state styling
   emptyText: { color: "#999", textAlign: "center", marginTop: 24 },
+
+  // Small gap between cards (tweak to taste: 6–12 works well)
+  separator: { height: 8 },
 });
