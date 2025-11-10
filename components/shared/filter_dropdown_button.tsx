@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import {
   Modal,
   StyleSheet,
@@ -20,43 +20,61 @@ interface Props {
   options: FilterOption[];
   selectedTag: FilterTag | null;
   onSelect: (render: () => React.ReactNode, tag: FilterTag) => void;
-  triggerLabel?: string;
+}
+
+function FilterGlyph({
+  color = "#FFFFFF",
+  barHeight = 2,
+  gap = 3,
+  widths = [14, 10, 6],
+}: {
+  color?: string;
+  barHeight?: number;
+  gap?: number;
+  widths?: [number, number, number] | number[];
+}) {
+  return (
+    <View style={{ alignItems: "center", justifyContent: "center" }}>
+      {widths.map((w, i) => (
+        <View
+          key={i}
+          style={{
+            width: w,
+            height: barHeight,
+            borderRadius: barHeight,
+            backgroundColor: color,
+            marginTop: i === 0 ? 0 : gap,
+          }}
+        />
+      ))}
+    </View>
+  );
 }
 
 export default function DropdownButtonFilter({
   options,
   selectedTag,
   onSelect,
-  triggerLabel = "Filter",
 }: Props) {
   const [open, setOpen] = useState(false);
-
-  const selectedLabel = useMemo(() => {
-    const found = options.find((o) => o.tag === selectedTag);
-    return found?.label ?? triggerLabel;
-  }, [options, selectedTag, triggerLabel]);
-
   const close = () => setOpen(false);
 
   return (
     <View>
-      {/* Trigger button */}
+      {/* Trigger: round blue button with white glyph */}
       <TouchableOpacity
         onPress={() => setOpen(true)}
-        style={styles.trigger}
-        activeOpacity={0.8}
+        style={styles.triggerIcon}
+        activeOpacity={0.85}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        <Text style={styles.triggerText}>{selectedLabel}</Text>
-        <Text style={styles.caret}>▼</Text>
+        <FilterGlyph color="#FFFFFF" barHeight={2} gap={3} widths={[14, 10, 6]} />
       </TouchableOpacity>
 
       {/* Dropdown overlay */}
       <Modal visible={open} transparent animationType="fade" onRequestClose={close}>
-        {/* Backdrop: tap outside to close */}
         <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={close}>
-          {/* Prevent closing when tapping inside the card */}
           <TouchableWithoutFeedback>
-            {/* Wrapper to right-align the menu */}
             <View style={styles.menuWrapper}>
               <View style={styles.menuCard}>
                 <FlatList
@@ -89,22 +107,21 @@ export default function DropdownButtonFilter({
   );
 }
 
-const MENU_WIDTH = 200; // narrow menu width
+const MENU_WIDTH = 150;
 
 const styles = StyleSheet.create({
-  trigger: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
+  // Blue circular trigger; white glyph inside
+  triggerIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: "#007AFF",
     borderWidth: 1,
     borderColor: "#007AFF",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
   },
-  triggerText: { fontWeight: "700", color: "#FFFFFF" },
-  caret: { marginLeft: 4, color: "#FFFFFF" },
 
   // overlay
   backdrop: {
@@ -114,12 +131,10 @@ const styles = StyleSheet.create({
     paddingTop: 100,
   },
 
-  // right align the menu
   menuWrapper: {
     alignItems: "flex-end",
   },
 
-  // narrower menu card aligned to the right
   menuCard: {
     width: MENU_WIDTH,
     backgroundColor: "#fff",
@@ -132,12 +147,11 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
 
-  // center each item’s content
   itemRow: {
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 10,
-    alignItems: "center",         // center horizontally
+    alignItems: "center",
     justifyContent: "center",
   },
   itemRowActive: {
@@ -145,9 +159,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
 
-  // centered text
-  itemText: { color: "#222", fontSize: 16, textAlign: "center" },      // centered
-  itemTextActive: { color: "#007AFF", fontWeight: "700", textAlign: "center" }, //  centered
+  itemText: { color: "#222", fontSize: 16, textAlign: "center" },
+  itemTextActive: { color: "#007AFF", fontWeight: "700", textAlign: "center" },
   separator: { height: 6 },
 });
-
