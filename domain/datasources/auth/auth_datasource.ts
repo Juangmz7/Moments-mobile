@@ -15,7 +15,7 @@ export interface AuthDataSource {
    * Backend sends an email with a verification code if the email exists.
    * @returns A plain string as returned by the server (e.g., status/trace message).
    */
-  login(request: UserAuthRequest): Promise<string>;
+  login(request: UserAuthRequest): Promise<void>;
 
   /**
    * Validates the email verification code and issues tokens.

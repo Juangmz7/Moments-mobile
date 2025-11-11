@@ -12,9 +12,9 @@ import { AuthDataSource } from "@/domain/datasources/auth/auth_datasource";
 export class AuthDataSourceImpl implements AuthDataSource {
   constructor(private readonly api: ApiService) {}
 
-  login(request: UserAuthRequest): Promise<string> {
+  login(request: UserAuthRequest): Promise<void> {
     // Public endpoint: do not attach Authorization header.
-    return this.api.post<string>("/auth/login", request, /* auth */ false);
+    return this.api.post<void>("/auth/login", request, /* auth */ false);
   }
 
   validateEmailCode(

@@ -7,6 +7,7 @@ import axios, {
 } from "axios";
 import qs from "qs";
 import { ApiService } from "../services/api_service";
+import { StorageType } from "../model/enums/storage_type";
 
 const BASE_URL =
   (process.env.EXPO_PUBLIC_API_URL || "https://api.campusconnect.com") + "/api";
@@ -41,8 +42,7 @@ export class ApiServiceImpl implements ApiService {
     this.client.interceptors.request.use(
       async (config: AuthedAxiosRequestConfig) => {
         if (!config.skipAuth) {
-          // const token = await AsyncStorage.getItem("access_token");
-          const token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqdWFuanVhbmdtb0BnbWFpbC5jb20iLCJpYXQiOjE3NjI3ODgwNjYsImV4cCI6MTc2Mjc4OTg2Nn0.fppWDAMP6dYzBb4oz7n4Gk5UE7_xsNYcv6NYclCcDzM"
+          const token = await AsyncStorage.getItem(StorageType.ACCESS_TOKEN);
           if (token) {
             config.headers = config.headers ?? {};
             // Use 'Authorization' capitalized — common requirement in many backends
@@ -69,6 +69,7 @@ export class ApiServiceImpl implements ApiService {
             await new Promise<void>((resolve) => pendingRequests.push(resolve));
           } else {
             try {
+              console.log("Starting token refresh flow");
               isRefreshing = true;
               await this.refreshToken();
             } finally {
@@ -80,7 +81,7 @@ export class ApiServiceImpl implements ApiService {
           }
 
           // Retry the original request with the new token
-          const newToken = await AsyncStorage.getItem("access_token");
+          const newToken = await AsyncStorage.getItem(StorageType.ACCESS_TOKEN);
           if (newToken) {
             original.headers = original.headers ?? {};
             (original.headers as Record<string, string>).Authorization = `Bearer ${newToken}`;
@@ -96,10 +97,11 @@ export class ApiServiceImpl implements ApiService {
 
   // ===== Refresh flow =====
   private async refreshToken(): Promise<void> {
-    const refreshToken = await AsyncStorage.getItem("refresh_token");
+    const refreshToken = await AsyncStorage.getItem(StorageType.REFRESH_TOKEN);
     if (!refreshToken) throw new Error("Missing refresh token");
 
     // IMPORTANT: use skipAuth to avoid attaching Authorization and recursion
+    console.log("Refreshing token with refresh token: " + refreshToken);
     const res = await this.client.post<{ accessToken: string; refreshToken?: string }>(
       "/auth/refresh-token",
       { refreshToken },

@@ -12,7 +12,7 @@ import { AuthRepository } from "@/domain/repository/auth/auth_repository";
 export class AuthRepositoryImpl implements AuthRepository {
   constructor(private readonly ds: AuthDataSource) {}
 
-  requestLoginEmail(request: UserAuthRequest): Promise<string> {
+  requestLoginEmail(request: UserAuthRequest): Promise<void> {
     return this.ds.login(request);
   }
 

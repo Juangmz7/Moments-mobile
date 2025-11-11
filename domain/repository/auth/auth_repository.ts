@@ -12,7 +12,7 @@ export interface AuthRepository {
   /**
    * Triggers the login flow (e.g., send verification code to email).
    */
-  requestLoginEmail(request: UserAuthRequest): Promise<string>;
+  requestLoginEmail(request: UserAuthRequest): Promise<void>;
 
   /**
    * Verifies the email code and retrieves tokens.
