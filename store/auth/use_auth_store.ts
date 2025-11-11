@@ -43,13 +43,10 @@ interface UserAuthStore {
   requestLoginEmail: (email: string) => Promise<void>;
 
   /** Verifies code, persists tokens, and authenticates user. */
-  verifyEmailCode: (code: string, email: string) => Promise<void>;
+  verifyEmailCode: (code: string) => Promise<void>;
 
   /** Registers a user (no tokens yet). */
   register: (email: string) => Promise<void>;
-
-  /** Activates account via token + email. */
-  activateAccount: (token: string, email: string) => Promise<void>;
 
   /** Refreshes tokens using the stored refresh token. */
   refreshToken: () => Promise<void>;
@@ -92,6 +89,8 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
       set({ error: null });
       const request: UserAuthRequest = { email };
       await authRepository.requestLoginEmail(request);
+      // Save the user email for the next step
+      set({ user: new User(email, "") });
     } catch (e: unknown) {
       set({ error: getErrorMessage(e) });
     }
@@ -103,8 +102,16 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
    * - Set minimal `user` entity
    * - Mark `isAuthenticated` = true
    */
-  verifyEmailCode: async (code: string, email: string) => {
+  verifyEmailCode: async (code: string) => {
     const { authRepository } = get();
+    const { user } = get();
+
+    if (user === null) {
+      set({ error: "No email found yet. Please restart login." });
+      return;
+    }
+    const email = user.email
+
     try {
       set({ error: null });
 
@@ -120,9 +127,11 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
       ]);
 
       // Build a minimal user model; extend if your backend returns more fields
-      const user = new User(email, resp.email.split("@")[0]);
+      const authenticatedUser = user.copyWith({
+        email: email, username: resp.email.split("@")[0]
+      })
 
-      set({ user, isAuthenticated: true, error: null });
+      set({ user: authenticatedUser, isAuthenticated: true, error: null });
     } catch (e: unknown) {
       set({ error: getErrorMessage(e) });
     }
@@ -138,20 +147,6 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
       set({ error: null });
       const request: UserAuthRequest = { email };
       await authRepository.register(request);
-    } catch (e: unknown) {
-      set({ error: getErrorMessage(e) });
-    }
-  },
-
-  /**
-   * Activates an existing account using a token + email.
-   * No local state changes beyond error handling.
-   */
-  activateAccount: async (token: string, email: string) => {
-    const { authRepository } = get();
-    try {
-      set({ error: null });
-      await authRepository.activateAccount(token, email);
     } catch (e: unknown) {
       set({ error: getErrorMessage(e) });
     }
