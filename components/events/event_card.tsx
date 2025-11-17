@@ -1,12 +1,33 @@
 // components/EventCard.tsx
+import React, { useRef, useState } from "react";
 import { EventItem } from "@/domain/model/entities/events/event_item";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+export default function EventCard({
+  event,
+  onPressed
+}: {
+  event: EventItem
+  onPressed: () => void
+}) {
 
-export default function EventCard({event}: { event: EventItem }) {
+  const [isLoading, setIsLoading] = useState(false)
+
   return (
-    <View style={styles.eventCard}>
-      <Text style={styles.eventTitle}>{event.title}</Text>
-    </View>
+    <Pressable onPress={() => {
+      if (isLoading) return;
+
+      setIsLoading(true);
+      onPressed();
+
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1000); // Delay to simulate loading
+
+    }}>
+      <View style={styles.eventCard}>
+        <Text style={styles.eventTitle}>{event.title}</Text>
+      </View>
+    </Pressable>
   );
 }
 

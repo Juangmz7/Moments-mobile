@@ -9,6 +9,7 @@ import {
     ViewStyle,
 } from "react-native";
 import EventCard from "./event_card";
+import { useRouter } from "expo-router";
 
 type Props = {
   events: EventItem[];
@@ -34,11 +35,26 @@ export default function EventList({
       <Text style={styles.header}>{headerLabel}</Text>
     ) : null;
 
+    const router = useRouter();
+
+  const handleEventPress = (eventId: string) => {
+  router.push({
+    pathname: "/(private)/event/[id]", 
+    params: { id: eventId } 
+  });
+}
+
   return (
     <FlatList
       data={events}
       keyExtractor={(item: EventItem) => String(item.id)}
-      renderItem={({ item }) => <EventCard event={item} />}
+      renderItem={
+        ({ item }) => 
+          <EventCard
+            event={item}
+            onPressed={() => handleEventPress(item.id)}
+          />
+      }
 
       // Header only if present → no empty spacing otherwise
       ListHeaderComponent={header}
