@@ -15,7 +15,49 @@ function FullscreenLoader() {
 
 export default function PrivateLayout() {
   const authStatus = useUserAuthStore((s) => s.authStatus);
-  const isLoading  = useUserAuthStore((s) => s.isLoading);
+  const isLoading = useUserAuthStore((s) => s.isLoading);
+
+  //skips login in dev mode
+  if (__DEV__) {
+    return (
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarActiveTintColor: '#2e64e5',
+          tabBarStyle: { backgroundColor: '#fefefe', borderTopColor: '#fefefe' },
+        }}
+      >
+        <Tabs.Screen
+          name="discover_screen"
+          options={{
+            title: "Events",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="calendar" color={color} size={size} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="conversation_screen"
+          options={{
+            title: "Chat",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="chatbox-ellipses" color={color} size={size} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="profile_screen"
+          options={{
+            title: "Profile",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="person" color={color} size={size} />
+            ),
+          }}
+        />
+      </Tabs>
+    );
+  }
+
 
   // Block rendering while auth is being checked to avoid flicker
   if (isLoading || authStatus === AuthStatus.CHECKING) {
@@ -26,6 +68,7 @@ export default function PrivateLayout() {
   if (authStatus !== AuthStatus.AUTHENTICATED) {
     return <Redirect href="/(public)/login_screen" />;
   }
+
 
   // Normal tabs for authenticated users
   return (
@@ -46,7 +89,7 @@ export default function PrivateLayout() {
         }}
       />
       <Tabs.Screen
-        name="chat_screen"
+        name="conversation_screen"
         options={{
           title: "Chat",
           tabBarIcon: ({ color, size }) => (

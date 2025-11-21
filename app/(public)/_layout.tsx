@@ -13,8 +13,14 @@ function FullscreenLoader() {
 }
 
 export default function PublicLayout() {
+  //skips login in dev mode
+  if (__DEV__) {
+    return <Redirect href="/(private)/discover_screen" />;
+  }
+
   const authStatus = useUserAuthStore((s) => s.authStatus);
   const isLoading  = useUserAuthStore((s) => s.isLoading);
+
 
   // Avoid flashing login/register while we’re still checking auth
   if (isLoading && authStatus === AuthStatus.CHECKING) {
