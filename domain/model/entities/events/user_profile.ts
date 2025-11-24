@@ -9,4 +9,5 @@ export interface UserProfile {
     interests: InterestTag[]
     city: string
     country: string
+    profileImage: string | null
 }

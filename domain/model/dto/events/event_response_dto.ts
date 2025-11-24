@@ -1,16 +1,28 @@
-import { InterestTag } from "../../enums/interest_tag"
-import { EventOrganiserResponseDTO } from "./event_organiser_response"
+import { InterestTag } from "../../enums/interest_tag";
+import { UserProfileResponseDTO } from "../user/user_profile_response_dto";
 
 export interface EventResponseDTO {
-    id: string
-    title: string
-    description: string
-    image?: string
-    interests: InterestTag[]
-    organiser: EventOrganiserResponseDTO
-    city: string
-    placeName: string
-    chatId: string
-    startDate: string
-    endDate: string
+    eventId: string;
+    name: string;
+    eventBio: {
+        id: string;
+        description: string;
+        image: string; // Spring serializes byte[] as a Base64 string
+        interestTags: InterestTag[]; // Enums come as strings
+    };
+    organiser: {
+        id: string;
+        name: string;
+        profile: UserProfileResponseDTO;
+    };
+    location: {
+        city: string;
+        placeName: string;
+    };
+    chat: {
+        id: string;
+    };
+    participantCount: number; 
+    startDate: string;
+    endDate: string;
 }
