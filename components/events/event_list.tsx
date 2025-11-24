@@ -1,15 +1,16 @@
 import { EventItem } from "@/domain/model/entities/events/event_item";
+import { useEventDetailStore } from "@/store/events/user_event_details_store";
+import { useRouter } from "expo-router";
 import React from "react";
 import {
-    FlatList,
-    StyleProp,
-    StyleSheet,
-    Text,
-    View,
-    ViewStyle,
+  FlatList,
+  StyleProp,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
 } from "react-native";
 import EventCard from "./event_card";
-import { useRouter } from "expo-router";
 
 type Props = {
   events: EventItem[];
@@ -35,14 +36,16 @@ export default function EventList({
       <Text style={styles.header}>{headerLabel}</Text>
     ) : null;
 
-    const router = useRouter();
+  const fetchEventDetails = useEventDetailStore((state) => state.fetchEventById) 
+
+  const router = useRouter();
 
   const handleEventPress = (eventId: string) => {
-  router.push({
-    pathname: "/(private)/event/[id]", 
-    params: { id: eventId } 
-  });
-}
+    router.push({
+      pathname: "/(private)/event/[id]", 
+      params: { id: eventId } 
+    });
+  }
 
   return (
     <FlatList
