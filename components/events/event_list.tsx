@@ -1,9 +1,7 @@
 import { EventItem } from "@/domain/model/entities/events/event_item";
 import { useRouter } from "expo-router";
-import React, { useEffect, useRef } from "react";
 import {
   ActivityIndicator,
-  Animated,
   FlatList,
   StyleProp,
   StyleSheet,
@@ -12,26 +10,7 @@ import {
   ViewStyle,
 } from "react-native";
 import EventCard from "./event_card";
-
-// Internal component to handle the Fade In animation
-const FadeInItem = ({ children, index }: { children: React.ReactNode; index: number }) => {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 200, // Not too slow, not instant
-      delay: (index % 10) * 50, // Small stagger that resets every 10 items
-      useNativeDriver: true,
-    }).start();
-  }, [fadeAnim, index]);
-
-  return (
-    <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) }] }}>
-      {children}
-    </Animated.View>
-  );
-};
+import { FadeInView } from "../shared/fade_in_view";
 
 type Props = {
   events: EventItem[];
@@ -86,12 +65,15 @@ export default function EventList({
       data={events}
       keyExtractor={(item: EventItem) => String(item.id)}
       renderItem={({ item, index }) => (
-        <FadeInItem index={index}>
-          <EventCard
-            event={item}
-            onPressed={() => handleEventPress(item.id)}
-          />
-        </FadeInItem>
+        <FadeInView 
+          index={index}
+          children={
+            <EventCard
+              event={item}
+              onPressed={() => handleEventPress(item.id)}
+            />
+          }
+        />  
       )}
       
       // --- Infinite Scroll Logic ---
