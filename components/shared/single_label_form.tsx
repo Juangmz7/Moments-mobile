@@ -35,7 +35,6 @@ export default function SingleLabelForm({
   const [touched, setTouched] = useState(false);
 
   const error = useMemo(() => {
-    if (!touched) return "";
     if (!content.trim()) return onEmptyFormSubmitedMessage;
     if (keyboardType !== "email-address") return "";
     const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -49,6 +48,7 @@ export default function SingleLabelForm({
 
   const handleSubmit = () => {
     setTouched(true);
+    console.log(isValid)
     if (!isValid) return;
     onFormSubmit(content.trim());
   };
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     color: "#111827",
   },
   errorText: {
-    marginTop: 4,            // ⬅️ pequeño respiro sin solaparse
+    marginTop: 4,            
     fontSize: 12,
     color: "#ef4444",
   },
