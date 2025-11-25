@@ -1,36 +1,29 @@
-// src/domain/services/api_service_impl.ts
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios, {
-  AxiosError,
-  AxiosInstance,
-  InternalAxiosRequestConfig,
-} from "axios";
+import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from "axios";
 import qs from "qs";
 import { ApiService } from "../services/api_service";
 import { StorageType } from "../model/enums/storage_type";
+import { useUserAuthStore } from "@/store/auth/use_auth_store";
 
-const BASE_URL =
-  (process.env.EXPO_PUBLIC_API_URL || "https://api.campusconnect.com") + "/api";
+const BASE_URL = (process.env.EXPO_PUBLIC_API_URL || "https://api.campusconnect.com") + "/api";
 
-// Simple refresh lock so we don't refresh multiple times in parallel
-let isRefreshing = false;
-let pendingRequests: Array<() => void> = [];
-
-/**
- * Extend Axios config to support a per-request flag
- * - skipAuth: do not attach Authorization header and do not refresh on 401
- */
 export type AuthedAxiosRequestConfig = InternalAxiosRequestConfig & {
   skipAuth?: boolean;
 };
 
+type PendingRequest = {
+  resolve: () => void;
+  reject: (err: any) => void;
+};
+
 export class ApiServiceImpl implements ApiService {
   private client: AxiosInstance;
+  private isRefreshing = false;
+  private pendingRequests: PendingRequest[] = [];
 
   constructor() {
     this.client = axios.create({
       baseURL: BASE_URL,
-      // Axios v1: paramsSerializer as object with serialize method
       paramsSerializer: {
         serialize: (params) =>
           qs.stringify(params, { arrayFormat: "repeat", skipNulls: true }),
@@ -38,85 +31,115 @@ export class ApiServiceImpl implements ApiService {
       timeout: 15000,
     });
 
-    // ===== Request interceptor (attach token unless skipAuth) =====
-    this.client.interceptors.request.use(
-      async (config: AuthedAxiosRequestConfig) => {
-        if (!config.skipAuth) {
-          const token = await AsyncStorage.getItem(StorageType.ACCESS_TOKEN);
-          if (token) {
-            config.headers = config.headers ?? {};
-            // Use 'Authorization' capitalized — common requirement in many backends
-            (config.headers as Record<string, string>).Authorization = `Bearer ${token}`;
-          }
-        }
-        return config;
-      }
-    );
+    // ... Request interceptor (Kept the same) ...
+    this.client.interceptors.request.use(async (config: AuthedAxiosRequestConfig) => {
+       if (!config.skipAuth) {
+         const token = await AsyncStorage.getItem(StorageType.ACCESS_TOKEN);
+         if (token) {
+           config.headers = config.headers ?? {};
+           (config.headers as Record<string, string>).Authorization = `Bearer ${token}`;
+         }
+       }
+       return config;
+    });
 
-    // ===== Response interceptor (401 -> refresh once, unless skipAuth) =====
+    // ===== RESPONSE INTERCEPTOR =====
     this.client.interceptors.response.use(
       (res) => res,
       async (error: AxiosError) => {
-        const status = error.response?.status;
         const original = error.config as (AuthedAxiosRequestConfig & { _retry?: boolean }) | undefined;
+        const status = error.response?.status;
 
-        // Only attempt refresh on 401 for authenticated requests, and only once
+        // Check if error is 401 and it's not a retry and not public (skipAuth)
         if (status === 401 && original && !original._retry && !original.skipAuth) {
           original._retry = true;
 
-          if (isRefreshing) {
-            // Wait until the ongoing refresh finishes
-            await new Promise<void>((resolve) => pendingRequests.push(resolve));
-          } else {
+          // --- CASE A: Refresh already in progress (CHECKING) ---
+          if (this.isRefreshing) {
             try {
-              console.log("Starting token refresh flow");
-              isRefreshing = true;
-              await this.refreshToken();
-            } finally {
-              isRefreshing = false;
-              // Let all queued requests continue
-              pendingRequests.forEach((r) => r());
-              pendingRequests = [];
+              // Wait for the leader to finish
+              await new Promise<void>((resolve, reject) => {
+                this.pendingRequests.push({ resolve, reject });
+              });
+              
+              // If resolved, retry with new token
+              const newToken = await AsyncStorage.getItem(StorageType.ACCESS_TOKEN);
+              if (newToken) {
+                original.headers = original.headers ?? {};
+                (original.headers as Record<string, string>).Authorization = `Bearer ${newToken}`;
+              }
+              return this.client.request(original);
+            } catch (err) {
+              // If the leader failed, we just propagate the error.
+              return Promise.reject(err);
             }
           }
 
-          // Retry the original request with the new token
-          const newToken = await AsyncStorage.getItem(StorageType.ACCESS_TOKEN);
-          if (newToken) {
-            original.headers = original.headers ?? {};
-            (original.headers as Record<string, string>).Authorization = `Bearer ${newToken}`;
+          // --- CASE B: We are the Leader (Start Refresh) ---
+          this.isRefreshing = true;
+
+          try {
+            console.log("Refreshing token...");
+            await this.refreshToken();
+
+            // Success: Notify queue
+            this.pendingRequests.forEach(({ resolve }) => resolve());
+            this.pendingRequests = [];
+
+            // Retry original request
+            const newToken = await AsyncStorage.getItem(StorageType.ACCESS_TOKEN);
+            if (newToken) {
+              original.headers = original.headers ?? {};
+              (original.headers as Record<string, string>).Authorization = `Bearer ${newToken}`;
+            }
+            return this.client.request(original);
+
+          } catch (refreshError) {
+            console.error("Token refresh failed:", refreshError);
+
+            // 1. Fail all pending requests
+            this.pendingRequests.forEach(({ reject }) => reject(refreshError));
+            this.pendingRequests = [];
+
+            // 2. CRITICAL: Update Global State to NOT_AUTHENTICATED
+            // This triggers the UI to switch to Login Screen
+            useUserAuthStore.getState().clearUser();
+
+            // 3. Return error to the caller
+            return Promise.reject(refreshError);
+          } finally {
+            this.isRefreshing = false;
           }
-          return this.client.request(original);
         }
 
-        // Other errors -> propagate
         return Promise.reject(error);
       }
     );
   }
-
   // ===== Refresh flow =====
   private async refreshToken(): Promise<void> {
     const refreshToken = await AsyncStorage.getItem(StorageType.REFRESH_TOKEN);
-    if (!refreshToken) throw new Error("Missing refresh token");
+    const email = await AsyncStorage.getItem(StorageType.USER_CREDENTIALS);
 
-    // IMPORTANT: use skipAuth to avoid attaching Authorization and recursion
-    console.log("Refreshing token with refresh token: " + refreshToken);
+    // Validate existence before calling API to avoid unnecessary 400/500s
+    if (!refreshToken || !email) {
+        throw new Error("Missing credentials for refresh");
+    }
+
     const res = await this.client.post<{ accessToken: string; refreshToken?: string }>(
       "/auth/refresh-token",
-      { refreshToken },
-      { headers: { "Content-Type": "application/json" }, skipAuth: true } as AuthedAxiosRequestConfig
+      { refreshToken, email },
+      { headers: { "Content-Type": "application/json" }, skipAuth: true } as AuthedAxiosRequestConfig,
     );
 
     const data = res.data;
     if (!data?.accessToken) throw new Error("Token refresh failed");
 
-    await AsyncStorage.setItem("access_token", data.accessToken);
+    await AsyncStorage.setItem(StorageType.ACCESS_TOKEN, data.accessToken);
     if (data.refreshToken) {
-      await AsyncStorage.setItem("refresh_token", data.refreshToken);
+      await AsyncStorage.setItem(StorageType.REFRESH_TOKEN, data.refreshToken);
     }
   }
-
   // ===== Public contract =====
   // _auth = true (default) -> authenticated call (adds token, refresh on 401)
   // _auth = false -> public call (no token, no refresh on 401)
