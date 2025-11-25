@@ -1,28 +1,24 @@
-// Auth store with proper loading management and clean async handling.
-// - Uses AuthStatus enum instead of boolean isAuthenticated.
-// - Each async action toggles `isLoading` automatically.
-// - Errors are captured and stored (no rethrow).
 
 import { container } from "@/dependency_injection/container";
 import { getErrorMessage } from "@/shared/utils/error_utils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 
-import { RefreshTokenRequest } from "@/domain/model/dto/auth/refresh_token_auth_request";
 import { UserAuthRequest } from "@/domain/model/dto/auth/user_auth_request";
 import { UserAuthResponse } from "@/domain/model/dto/auth/user_auth_response";
 import { User } from "@/domain/model/entities/users/user";
 import { AuthStatus } from "@/domain/model/enums/AuthStatus";
 import { StorageType } from "@/domain/model/enums/storage_type";
-import { AuthRepository } from "@/domain/repository/auth/auth_repository";
 
 interface UserAuthStore {
   user: User | null;
   authStatus: AuthStatus;
-  error: string | null;
-  isLoading: boolean;
 
-  authRepository: AuthRepository;
+  errorLogin: string | null;
+  isLoginLoading: boolean;
+
+  errorCode: string | null
+  isLoadingCode: boolean
 
   setUser: (user: User) => void;
   setAuthStatus: (status: AuthStatus) => void;
@@ -32,26 +28,31 @@ interface UserAuthStore {
   requestLoginEmail: (email: string) => Promise<void>;
   verifyEmailCode: (code: string) => Promise<void>;
   register: (email: string) => Promise<void>;
-  refreshToken: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
 export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
   user: null,
   authStatus: AuthStatus.NOT_AUTHENTICATED,
-  error: null,
-  isLoading: false,
+  
+  errorLogin: null,
+  isLoginLoading: false,
 
-  authRepository: container.authRepository,
+  errorCode: null,
+  isLoadingCode: false,
 
   setUser: (user: User) => set({ user }),
   setAuthStatus: (status: AuthStatus) => set({ authStatus: status }),
-  setError: (message: string | null) => set({ error: message }),
+  setError: (message: string | null) => set({ errorLogin: message }),
 
   clearUser: async () => {
     // Remove tokens and reset user/auth state
-    await AsyncStorage.multiRemove(["accessToken", "refreshToken"]);
-    set({ user: null, authStatus: AuthStatus.NOT_AUTHENTICATED, error: null });
+    await AsyncStorage.multiRemove([
+      StorageType.ACCESS_TOKEN,
+      StorageType.REFRESH_TOKEN,
+      StorageType.USER_CREDENTIALS
+    ]);
+    set({ user: null, authStatus: AuthStatus.NOT_AUTHENTICATED, errorLogin: null });
   },
 
   /**
@@ -59,18 +60,21 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
    * Stores a temporary user with the email.
    */
   requestLoginEmail: async (email: string) => {
-    const { authRepository } = get();
+    const state = get();
+
+    if (state.isLoginLoading) return
+
     try {
-      set({ isLoading: true, error: null });
+      set({ isLoginLoading: true, errorLogin: null });
+
       const request: UserAuthRequest = { email };
-      await authRepository.requestLoginEmail(request);
-      set({
-        user: new User(email, ""), 
-      });
+      await container.authRepository.requestLoginEmail(request);
+
+      state.setUser(new User(email, ""))
+      set({ isLoginLoading: false })
+
     } catch (e: unknown) {
-      set({ error: getErrorMessage(e) });
-    } finally {
-      set({ isLoading: false });
+      set({ errorLogin: getErrorMessage(e), isLoginLoading: false });
     }
   },
 
@@ -78,94 +82,60 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
    * Verifies the received code, persists tokens, and marks the user as AUTHENTICATED.
    */
   verifyEmailCode: async (code: string) => {
-    const { authRepository } = get();
-    const { user } = get();
 
-    if (!user) {
-      set({ error: "No email found. Please restart login." });
+    const state = get()
+
+    if (state.isLoadingCode) return
+
+    if (!state.user) {
+      set({ errorCode: "No email found. Please restart login." });
       return;
     }
 
-    const email = user.email;
+    const email = state.user.email;
 
     try {
-      set({ isLoading: true, error: null });
+      set({ isLoadingCode: true, errorCode: null });
 
       const request: UserAuthRequest = { email };
-      const resp: UserAuthResponse = await authRepository.verifyEmailCode(code, request);
+      const resp: UserAuthResponse = await container
+        .authRepository.verifyEmailCode(code, request);
+      
       if (!resp?.accessToken || !resp?.refreshToken) throw new Error("Invalid auth response");
 
       await AsyncStorage.setItem(StorageType.ACCESS_TOKEN, resp.accessToken);
       await AsyncStorage.setItem(StorageType.REFRESH_TOKEN, resp.refreshToken);
-      
-     const resp1 = AsyncStorage.getItem(StorageType.ACCESS_TOKEN)
-     const resp2 = AsyncStorage.getItem(StorageType.REFRESH_TOKEN)
+      await AsyncStorage.setItem(StorageType.USER_CREDENTIALS, resp.email)
 
-      const authenticatedUser = user.copyWith({
-        email,
-        username: resp.email.split("@")[0],
+      const authenticatedUser = state.user.copyWith({
+        username: email.split("@")[0],
       });
 
       set({
         user: authenticatedUser,
         authStatus: AuthStatus.AUTHENTICATED,
-        error: null,
+        errorCode: null,
+        isLoadingCode: false
       });
+
     } catch (e: unknown) {
-      set({ error: getErrorMessage(e) });
-    } finally {
-      set({ isLoading: false });
-    }
+      set({ errorCode: getErrorMessage(e), isLoadingCode: false });
+    } 
+
   },
 
   /**
    * Registers a new account. (Auth status transition depends on your flow.)
    */
   register: async (email: string) => {
-    const { authRepository } = get();
     try {
-      set({ isLoading: true, error: null });
+      set({ isLoginLoading: true, errorLogin: null });
       const request: UserAuthRequest = { email };
-      await authRepository.register(request);
+      await container.authRepository.register(request);
     } catch (e: unknown) {
-      set({ error: getErrorMessage(e) });
+      set({ errorLogin: getErrorMessage(e) });
     } finally {
-      set({ isLoading: false });
-    }
-  },
-
-  /**
-   * Silently refreshes tokens using the stored refresh token.
-   * If anything is missing/fails, clears the session and resets auth state.
-   */
-  refreshToken: async () => {
-    const { authRepository } = get();
-    try {
-      set({ isLoading: true, error: null });
-
-      const refreshToken = await AsyncStorage.getItem(StorageType.REFRESH_TOKEN);
-      const email = get().user?.email;
-
-      if (!refreshToken || !email) {
-        set({ error: "Missing refresh token or email." });
-        await get().clearUser();
-        return;
-      }
-
-      const request: RefreshTokenRequest = { refreshToken, email };
-      const resp = await authRepository.refreshToken(request);
-
-      await AsyncStorage.multiSet([
-        ["accessToken", resp.accessToken],
-        ["refreshToken", resp.refreshToken],
-      ]);
-
-      set({ authStatus: AuthStatus.AUTHENTICATED, error: null });
-    } catch (e: unknown) {
-      set({ error: getErrorMessage(e) });
-      await get().clearUser();
-    } finally {
-      set({ isLoading: false });
+      set({ isLoginLoading: false });
     }
   },
 
@@ -173,15 +143,16 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
    * Logs out on the backend (best-effort) and always clears the local session.
    */
   logout: async () => {
-    const { authRepository } = get();
     try {
-      set({ isLoading: true, error: null });
-      await authRepository.logout();
-    } catch (e: unknown) {
-      set({ error: getErrorMessage(e) });
-    } finally {
+      set({ isLoginLoading: true, errorLogin: null });
+
+      await container.authRepository.logout();
+
       await get().clearUser();
-      set({ isLoading: false });
+      set({ isLoginLoading: false });
+
+    } catch (e: unknown) {
+      set({ errorLogin: getErrorMessage(e), isLoginLoading: false});
     }
   },
 }));
