@@ -1,5 +1,5 @@
 import SingleLabelForm from "@/components/shared/single_label_form";
-import { AntDesign } from "@expo/vector-icons";
+// Imported the extracted button component
 import React from "react";
 import {
   ActivityIndicator,
@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import GoogleLoginButton from "../shared/google_login_button";
 
 interface AuthFormViewProps {
   title?: string;
@@ -52,21 +53,10 @@ export default function AuthFormView({
       {/* Google Button (optional) */}
       {showGoogleButton && (
         <>
-          <TouchableOpacity
-            style={styles.googleBtn}
+          <GoogleLoginButton 
             onPress={onGooglePress}
-            activeOpacity={0.9}
-            disabled={isExternalLoginLoading}
-          >
-            {isExternalLoginLoading ? (
-              <ActivityIndicator color={"#2e64e5"} />
-            ) : (
-              <>
-                <AntDesign name="google" size={20} color={"#2e64e5"} />
-                <Text style={styles.googleBtnText}>Continue with Google</Text>
-              </>
-            )}
-          </TouchableOpacity>
+            isLoading={isExternalLoginLoading}
+          />
 
           {/* Divider */}
           <View style={styles.dividerWrap}>
@@ -127,28 +117,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 8,
     textAlign: "center",
-  },
-  googleBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center", // Centra el contenido (loader o texto)
-    gap: 10,
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  googleBtnText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#2e64e5",
   },
   dividerWrap: {
     flexDirection: "row",
