@@ -75,10 +75,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
             // Logic to determine if there are more pages
             if (page === 0) {
                 // First load: replace everything
-                setMessages(response.events);
+                setMessages(response.messages);
             } else {
                 // Pagination: add to top
-                prependMessages(response.events);
+                prependMessages(response.messages);
             }
 
             set((state) => ({
