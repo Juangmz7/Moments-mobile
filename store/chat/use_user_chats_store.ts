@@ -112,7 +112,6 @@ export const useUserChatsStore = create<UserChatsState>((set, get) => ({
     const state = get();
        
     const currentChats = state.chats;
-    console.log(newMessage.chatId)
     const chatIndex = currentChats.findIndex((c) => c.id === newMessage.chatId);
 
     // EDGE CASE: Chat not found locally

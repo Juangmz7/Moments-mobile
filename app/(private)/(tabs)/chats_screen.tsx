@@ -34,13 +34,11 @@ export default function ChatsScreen() {
         useCallback(() => {
             // Initial load (Show Spinner)
             if (chats.length === 0) {
-                console.log("🔄 Fetching list via HTTP...");
                 fetchUserChats(); 
             } 
             // Returning from background or navigating back from a chat
             // Perform a silent refresh to catch up on any missed WebSocket events (e.g., connection drops)
             else {
-                console.log("🔄 Resyncing list via HTTP...");
                 refreshUserChats(); 
             }
         }, [chats.length]) // Dependency ensures we distinguish between initial fetch and refresh
