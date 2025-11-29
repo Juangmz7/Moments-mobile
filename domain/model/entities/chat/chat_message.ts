@@ -1,6 +1,7 @@
 
 export interface ChatMessage {
   id: string;
+  chatId: string;
   senderId: string;
   senderName: string;
   senderProfilePictureUrl?: string; // Match the URL field we added

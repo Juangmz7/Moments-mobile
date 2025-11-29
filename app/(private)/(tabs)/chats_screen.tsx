@@ -6,14 +6,14 @@ import {
     StyleSheet,
     ActivityIndicator,
     Image,
-    RefreshControl
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserChatsStore } from "@/store/chat/use_user_chats_store";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { UserChatsView } from "@/domain/model/entities/chat/user_chat_view";
+import { useUserChatListSocket } from "@/hooks/chat/use_user_chat_list_socket";
 
 export default function ChatsScreen() {
     const router = useRouter();
@@ -22,21 +22,28 @@ export default function ChatsScreen() {
         chats, 
         isLoading, 
         fetchUserChats, 
-        refreshUserChats, // Ensure this exists in your store update
+        refreshUserChats,
         hasMore
     } = useUserChatsStore();
+
+    // Initialize socket listener for the list
+    useUserChatListSocket();
 
     // Reload list logic
     useFocusEffect(
         useCallback(() => {
-            // If list is empty, fetch normally (shows big loader)
+            // Initial load (Show Spinner)
             if (chats.length === 0) {
-                fetchUserChats();
-            } else {
-                // If list exists, refresh silently/background (no white flash)
-                refreshUserChats();
+                console.log("🔄 Fetching list via HTTP...");
+                fetchUserChats(); 
+            } 
+            // Returning from background or navigating back from a chat
+            // Perform a silent refresh to catch up on any missed WebSocket events (e.g., connection drops)
+            else {
+                console.log("🔄 Resyncing list via HTTP...");
+                refreshUserChats(); 
             }
-        }, [])
+        }, [chats.length]) // Dependency ensures we distinguish between initial fetch and refresh
     );
 
     const openChat = (chatId: string, eventName: string) => {
@@ -99,13 +106,6 @@ export default function ChatsScreen() {
                         keyExtractor={(item: UserChatsView) => String(item.id)}
                         renderItem={renderItem}
                         contentContainerStyle={{ paddingVertical: 12 }}
-                        // TODO: Delete refresh controll when implemented websocket channel
-                        refreshControl={
-                            <RefreshControl 
-                                refreshing={isLoading} 
-                                onRefresh={refreshUserChats} 
-                            />
-                        }
                         onEndReached={() => {
                             if (chats.length === 0) return
                             // Prevent fetching if already loading or no more data

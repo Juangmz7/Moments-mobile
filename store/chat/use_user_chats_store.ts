@@ -1,4 +1,5 @@
 import { container } from '@/dependency_injection/container';
+import { ChatMessage } from '@/domain/model/entities/chat/chat_message';
 import { UserChatsView } from '@/domain/model/entities/chat/user_chat_view';
 import { getErrorMessage } from '@/shared/utils/error_utils';
 import { create } from 'zustand';
@@ -16,14 +17,14 @@ interface UserChatsState {
     setChats: (chats: UserChatsView[]) => void;
     appendChats: (chats: UserChatsView[]) => void;
     
-    // Logic for Real-time updates
-    updateOrAddChat: (chat: UserChatsView) => void;
-    
     clearStore: () => void;
     
     // Async Actions
     fetchUserChats: () => Promise<void>;
     refreshUserChats: () => Promise<void>; // New action
+
+    updateChatLastMessage: (message: ChatMessage) => void;
+
 }
 
 export const useUserChatsStore = create<UserChatsState>((set, get) => ({
@@ -40,11 +41,6 @@ export const useUserChatsStore = create<UserChatsState>((set, get) => ({
             newChat => !state.chats.some(existing => existing.id === newChat.id)
         );
         return { chats: [...state.chats, ...uniqueChats] };
-    }),
-
-    updateOrAddChat: (updatedChat) => set((state) => {
-        const otherChats = state.chats.filter(c => c.id !== updatedChat.id);
-        return { chats: [updatedChat, ...otherChats] };
     }),
 
     clearStore: () => set({ 
@@ -109,5 +105,43 @@ export const useUserChatsStore = create<UserChatsState>((set, get) => ({
         } finally {
             set({ isLoading: false });
         }
+    },
+
+   updateChatLastMessage: (newMessage) => {
+
+    const state = get();
+       
+    const currentChats = state.chats;
+    console.log(newMessage.chatId)
+    const chatIndex = currentChats.findIndex((c) => c.id === newMessage.chatId);
+
+    // EDGE CASE: Chat not found locally
+    // If a brand new chat arrives via socket but isn't in the list yet,
+    // we can't update it because we lack the Chat Metadata (User name, Avatar, etc).
+    // It is best to trigger a fetch here or ignore it until the user refreshes.
+    if (chatIndex === -1) {
+        state.fetchUserChats();
+        return;
     }
+
+    // PREPARE UPDATE
+    const chatToUpdate = {
+      ...currentChats[chatIndex],
+      // Update the last message
+      lastMessage: newMessage, 
+      // CRITICAL: Update the chat's timestamp so it logically sorts to the top
+      updatedAt: newMessage.sentAt || new Date().toISOString(),
+      // Optional: Increment unread count if logic permits
+      // unreadCount: currentChats[chatIndex].unreadCount + 1,
+    };
+
+    // REORDER 
+    // Remove the old version of the chat
+    const otherChats = currentChats.filter((c) => c.id !== newMessage.chatId);
+
+    // Add the updated chat to the absolute top of the array
+    set({
+      chats: [chatToUpdate, ...otherChats],
+    });
+  },
 }));
