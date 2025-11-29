@@ -44,9 +44,7 @@ export const useGoogleAuthRedirection = (
 
       if (idToken) {
         await onLoginSuccess(idToken);
-      } else {
-        onLoginFailed("No ID Token found");
-      }
+      } 
 
     } catch (error) {
       console.log('Error', error);
