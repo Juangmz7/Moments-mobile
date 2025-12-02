@@ -1,5 +1,6 @@
 import { ChatMessage } from '@/domain/model/entities/chat/chat_message';
 import { useChatMessageSocket } from '@/hooks/chat/use_chat_messages_socket';
+import { useUserAuthStore } from '@/store/auth/use_auth_store';
 import { useChatStore } from '@/store/chat/use_chat_messages_store';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useLocalSearchParams } from 'expo-router';
@@ -21,6 +22,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function ConversationScreen() {
     const { id } = useLocalSearchParams();
     const chatId = Array.isArray(id) ? id[0] : id;
+    const user = useUserAuthStore((state) => state.user)
 
     // Layout Hooks
     const insets = useSafeAreaInsets();
@@ -74,8 +76,7 @@ export default function ConversationScreen() {
     };
 
     const renderMessage = ({ item }: { item: ChatMessage }) => {
-        // const isMe = item.isMine;
-        const isMe = item.isMine
+        const isMe = item.senderName === user!.username
 
         return (
             <View
@@ -92,7 +93,7 @@ export default function ConversationScreen() {
                 )}
                 
                 <Text style={[styles.messageText, isMe ? styles.myText : styles.otherText]}>
-                    {isMe ? item.content + " (me)" : item.content + "(" + item.senderName + ")" } 
+                    {(isMe ? item.content + " (me)" + item.sentAt: item.content + "(" + item.senderName + ")" + item.sentAt)  } 
                 </Text>
             </View>
         );
