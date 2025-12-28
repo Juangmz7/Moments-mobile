@@ -79,7 +79,7 @@ export default function ChatsScreen() {
                 <View style={styles.textArea}>
                     <Text style={styles.name}>{item.eventName}</Text>
                     <Text style={styles.lastMessage} numberOfLines={1}>
-                        {item.lastMessage?.content || "No messages yet"}
+                        {item.lastMessage?.content || "Be the first one to say hello 👋"}
                     </Text>
                 </View>
                 
