@@ -6,11 +6,11 @@ export class User {
   constructor(
     public email: string,
     public username: string,
-    public bio: string | null,
-    public profileImage: string | null,
-    public languages: string[] | null,
-    public nationality: string | null,
-    public socialMedia: Map<string, string> | null
+    public bio?: string,
+    public profileImage?: string,
+    public languages?: string[],
+    public nationality?: string[],
+    public socialMedia?: Map<string, string>
   ) {}
 
   /**
@@ -61,7 +61,7 @@ export class User {
       json.nacionality,
       json.socialMedia
         ? new Map(Object.entries(json.socialMedia))
-        : null
+        : undefined
     );
   }
 }
