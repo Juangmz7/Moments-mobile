@@ -10,8 +10,8 @@ export class UserProfileRepositoryImpl implements UserProfileRepository {
     return this.dataSource.getMyProfile();
   }
 
-  async updateMyProfile(payload: UserProfileUpdateRequest): Promise<UserProfile> {
-    return this.dataSource.updateMyProfile(payload);
+  async updateMyProfile(userProfileId: string, payload: UserProfileUpdateRequest): Promise<UserProfile> {
+    return this.dataSource.updateMyProfile(userProfileId, payload);
   }
 }
 

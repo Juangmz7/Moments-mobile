@@ -19,10 +19,14 @@ export const useProfilePage = () => {
   const displayName =
     profile?.name || user?.username || user?.email || "Your Name";
 
-  const subtitle =
-    profile && (profile.city || profile.country)
-      ? [profile.city, profile.country].filter(Boolean).join(", ")
-      : profile?.nationality || "Add your location";
+  let subtitle = "Add your location";
+  if (profile) {
+    if (profile.city || profile.country) {
+      subtitle = [profile.city, profile.country].filter(Boolean).join(", ");
+    } else if (profile.nationality.length > 0) {
+      subtitle = profile.nationality.join(", ");
+    }
+  }
 
   const interests =
     profile?.interests && profile.interests.length > 0
@@ -34,17 +38,21 @@ export const useProfilePage = () => {
       ? profile.languages.join(", ")
       : "Add your languages";
 
-  const nationalityText = profile?.nationality || "Add your nationality";
+  const nationalityText =
+    profile && profile.nationality.length > 0
+      ? profile.nationality.join(", ")
+      : "Add your nationality";
 
-  const bioText = profile
-    ? `${displayName}, ${profile.age} years old`
-    : "Tell others a bit about yourself.";
+  const bioText =
+    profile && profile.bio && profile.bio.trim().length > 0
+      ? profile.bio
+      : "Tell others a bit about yourself.";
 
   // --- Edit form state ---
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editUserName, setEditUserName] = useState(profile?.name ?? "");
   const [editNationality, setEditNationality] = useState(
-    profile?.nationality ?? ""
+    profile?.nationality.join(", ") ?? ""
   );
   const [editLanguages, setEditLanguages] = useState(
     profile?.languages.join(", ") ?? ""
@@ -57,16 +65,18 @@ export const useProfilePage = () => {
   const [editInterests, setEditInterests] = useState(
     profile?.interests.join(", ") ?? ""
   );
+  const [editBio, setEditBio] = useState(profile?.bio ?? "");
 
   useEffect(() => {
     if (profile) {
       setEditUserName(profile.name ?? "");
-      setEditNationality(profile.nationality ?? "");
+      setEditNationality(profile.nationality.join(", ") ?? "");
       setEditLanguages(profile.languages.join(", ") ?? "");
       setEditAge(profile.age ? String(profile.age) : "");
       setEditCity(profile.city ?? "");
       setEditCountry(profile.country ?? "");
       setEditInterests(profile.interests.join(", ") ?? "");
+      setEditBio(profile.bio ?? "");
     }
   }, [profile]);
 
@@ -95,12 +105,11 @@ export const useProfilePage = () => {
 
     await updateProfile({
       userName: editUserName,
-      nationality: Array.isArray(editNationality)
-        ? editNationality.join(", ")
-        : editNationality,
+      nationality: editNationality,
       languages,
       age: ageNumber,
       interests,
+      bio: editBio,
       userLocation: { city: editCity, country: editCountry },
       profilePicture: null,
     });
@@ -129,6 +138,7 @@ export const useProfilePage = () => {
     editCity,
     editCountry,
     editInterests,
+    editBio,
     setEditUserName,
     setEditNationality,
     setEditLanguages,
@@ -136,6 +146,7 @@ export const useProfilePage = () => {
     setEditCity,
     setEditCountry,
     setEditInterests,
+     setEditBio,
     handleCloseEdit,
     handleSubmitEdit,
     languagesText,

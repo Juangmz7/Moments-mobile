@@ -46,6 +46,7 @@ export default function ProfileScreen() {
     editCity,
     editCountry,
     editInterests,
+    editBio,
     setEditUserName,
     setEditNationality,
     setEditLanguages,
@@ -53,6 +54,7 @@ export default function ProfileScreen() {
     setEditCity,
     setEditCountry,
     setEditInterests,
+    setEditBio,
     handleCloseEdit,
     handleSubmitEdit,
     languagesText,
@@ -132,7 +134,7 @@ export default function ProfileScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="Nationality"
-                value={Array.isArray(editNationality) ? editNationality.join(", ") : editNationality}
+                value={editNationality}
                 onChangeText={setEditNationality}
               />
 
@@ -175,6 +177,17 @@ export default function ProfileScreen() {
                 placeholder="Interests (comma separated, e.g. SPORTS)"
                 value={editInterests}
                 onChangeText={setEditInterests}
+              />
+
+              <Text style={styles.fieldLabel}>Bio</Text>
+              <TextInput
+                style={styles.bioInput}
+                placeholder="Tell others a bit about yourself"
+                value={editBio}
+                onChangeText={setEditBio}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
               />
             </ScrollView>
 
@@ -318,6 +331,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     marginBottom: 10,
+  },
+  bioInput: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 10,
+    minHeight: 80,
   },
   editScroll: {
     flex: 1,

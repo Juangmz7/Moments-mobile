@@ -9,6 +9,6 @@ export interface UserProfileDataSource {
   getMyProfile(): Promise<UserProfile>;
 
   /** PUT /api/user/me */
-  updateMyProfile(payload: UserProfileUpdateRequest): Promise<UserProfile>;
+  updateMyProfile(userProfileId: string, payload: UserProfileUpdateRequest): Promise<UserProfile>;
 }
 

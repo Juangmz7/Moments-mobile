@@ -6,6 +6,7 @@ export interface UserProfileUpdateRequest {
   languages: string[];
   age: number;
   interests: InterestTag[];
+  bio?: string;
   userLocation: {
     city: string;
     country: string;

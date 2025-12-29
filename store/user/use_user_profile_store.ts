@@ -15,7 +15,7 @@ interface UserProfileStore {
 
 const userProfileRepository = container.userProfileRepository;
 
-export const useUserProfileStore = create<UserProfileStore>((set) => ({
+export const useUserProfileStore = create<UserProfileStore>((set, get) => ({
   profile: null,
   isLoading: false,
   error: null,
@@ -32,7 +32,12 @@ export const useUserProfileStore = create<UserProfileStore>((set) => ({
   updateProfile: async (payload: UserProfileUpdateRequest) => {
     set({ isLoading: true, error: null });
     try {
-      const profile = await userProfileRepository.updateMyProfile(payload);
+      const current = get().profile;
+      if (!current) {
+        throw new Error("Cannot update profile: no profile loaded");
+      }
+
+      const profile = await userProfileRepository.updateMyProfile(current.id, payload);
       set({ profile, isLoading: false });
     } catch (e: unknown) {
       set({ error: getErrorMessage(e), isLoading: false });

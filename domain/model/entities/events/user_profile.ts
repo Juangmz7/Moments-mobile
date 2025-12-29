@@ -1,16 +1,15 @@
-// user_profile.ts
-import { InterestTag } from "../../enums/interest_tag" 
+import { InterestTag } from "../../enums/interest_tag"
 
 export interface UserProfile {
     id: string
     name: string
     age: number
     bio: string
-    nationality: string | null 
+    nationality: string[]
     languages: string[]
     interests: InterestTag[]
     city: string
     country: string
     profileImage: string | null
-    socialMedia: Map<string, string> 
+    socialMedia: Map<string, string> | null
 }
