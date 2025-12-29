@@ -5,7 +5,7 @@ export interface UserProfile {
     name: string
     age: number
     bio: string
-    nationality: string[]
+    nationality: string
     languages: string[]
     interests: InterestTag[]
     city: string

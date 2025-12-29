@@ -18,12 +18,14 @@ const DEFAULT_PROFILE: UserProfile = {
     id: "no-profile-id",
     name: "Unknown profile",
     age: 0,
+    bio: "",
     nationality: "",
     languages: [],
     interests: [],
     city: "",
     country: "",
-    profileImage: null
+    profileImage: null,
+    socialMedia: null,
 };
 /**
  * Helper to map the generic UserProfileDTO to the Frontend UserProfile interface.
@@ -37,6 +39,7 @@ export function mapProfileToFrontend(dto: UserProfileResponseDTO): UserProfile {
         name: dto.userName ?? "Anonymous", 
         
         age: dto.age ?? 0,
+        bio: "",
         nationality: dto.nationality ?? "Unknown",
         languages: dto.languages ?? [],
         
@@ -45,6 +48,7 @@ export function mapProfileToFrontend(dto: UserProfileResponseDTO): UserProfile {
         city: dto.userLocation?.city ?? "",     
         country: dto.userLocation?.country ?? "",
         
-        profileImage: processImage(dto.profilePicture) || null 
+        profileImage: processImage(dto.profilePicture) || null,
+        socialMedia: null,
     };
 };
