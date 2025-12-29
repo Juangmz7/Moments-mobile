@@ -1,6 +1,7 @@
 import { UserProfileDataSource } from "@/domain/datasources/user/user_profile_datasource";
 import { mapProfileToFrontend } from "@/domain/infrastructure/mappers/user_profile_mapper";
 import { UserProfileResponseDTO } from "@/domain/model/dto/user/user_profile_response_dto";
+import { UserProfileUpdateRequest } from "@/domain/model/dto/user/user_profile_update_request";
 import { UserProfile } from "@/domain/model/entities/events/user_profile";
 import { ApiService } from "@/domain/services/api_service";
 
@@ -15,4 +16,10 @@ export class UserProfileDataSourceImpl implements UserProfileDataSource {
     const dto = await this.api.get<UserProfileResponseDTO>("/user/me");
     return mapProfileToFrontend(dto);
   }
+
+  async updateMyProfile(payload: UserProfileUpdateRequest): Promise<UserProfile> {
+    const dto = await this.api.put<UserProfileResponseDTO>("/user/me", payload, true);
+    return mapProfileToFrontend(dto);
+  }
 }
+
