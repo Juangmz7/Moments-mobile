@@ -1,14 +1,12 @@
 import React, { useState } from "react";
 import {
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
-const AVATAR = require("assets/images/profilePictureNotExistent.png");
 const Section = ({
   title,
   children,
@@ -31,12 +29,19 @@ const Section = ({
 };
 
 export default function ProfileScreen() {
+  const name = "Alex Doe"; // Defined here to extract the initial easily
+  const initial = name.charAt(0).toUpperCase();
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.avatarWrapper}>
-        <Image source={AVATAR} style={styles.avatar} />
+        {/* Changed Image to View with Text */}
+        <View style={styles.avatar}>
+           <Text style={styles.avatarText}>{initial}</Text>
+        </View>
       </View>
-      <Text style={styles.name}>Alex Doe</Text>
+      
+      <Text style={styles.name}>{name}</Text>
       <Text style={styles.subtitle}>Computer Science</Text>
 
       <View style={styles.row}>
@@ -135,10 +140,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  // Modified avatar styles
   avatar: {
     width: 96,
     height: 96,
     borderRadius: 48, 
-    backgroundColor: "#e3edf7", 
+    backgroundColor: "#0066cc", // Darker blue for background
+    justifyContent: "center",   // Centers text vertically
+    alignItems: "center",       // Centers text horizontally
+  },
+  // New style for the initial letter
+  avatarText: {
+    fontSize: 48,
+    fontWeight: "bold",
+    color: "#ffffff",
   },
 });
