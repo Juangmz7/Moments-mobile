@@ -9,7 +9,7 @@ export class User {
     public bio: string | null,
     public profileImage: string | null,
     public languages: string[] | null,
-    public nacionality: string[] | null,
+    public nationality: string | null,
     public socialMedia: Map<string, string> | null
   ) {}
 
@@ -24,7 +24,7 @@ export class User {
       changes.bio ?? this.bio,
       changes.profileImage ?? this.profileImage,
       changes.languages ?? this.languages,
-      changes.nacionality ?? this.nacionality,
+      changes.nationality ?? this.nationality,
       changes.socialMedia ?? this.socialMedia
     );
   }
@@ -40,7 +40,7 @@ export class User {
       bio: this.bio,
       profileImage: this.profileImage,
       languages: this.languages,
-      nacionality: this.nacionality,
+      nacionality: this.nationality,
       // Convert Map to regular object for JSON safety
       socialMedia: this.socialMedia
         ? Object.fromEntries(this.socialMedia)

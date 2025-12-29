@@ -1,15 +1,19 @@
-
-
+// user_profile_response_dto.ts
 export interface UserProfileResponseDTO {
     id: string;
     userName: string;
     age: number;
-    nationality: string;
+    
+    bio: string | null;
+    nationality: string | null;
+    
     languages: string[];
-    interests: string[];
-    userLocation: {
+    interests: string[]; 
+        userLocation: {
         city: string;
         country: string;
-    }
-    profilePicture: string | null; 
+    } | null;
+    
+    profilePicture: string | null;
+    socialMedia: Record<string, string> | null; 
 }

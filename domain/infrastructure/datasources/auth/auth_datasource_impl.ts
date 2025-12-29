@@ -1,7 +1,4 @@
-// src/domain/infrastructure/datasource/auth_remote_data_source.ts
-// Remote implementation of AuthDataSource using the project's ApiService.
 // This layer is responsible for building endpoints and passing the correct auth flag.
-// Do not add domain logic here.
 
 import { AuthDataSource } from "@/domain/datasources/auth/auth_datasource";
 import { TokenRequest } from "@/domain/model/dto/auth/token_request";
