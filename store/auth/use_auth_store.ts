@@ -110,7 +110,7 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
               credentials.bio,  // bio
               credentials.profileImage,  // profileImage
               credentials.languages,  // languages 
-              credentials.nacionality,  // nationality
+              credentials.nationality,  // nationality
               credentials.socialMedia 
             ) 
         });
@@ -330,7 +330,7 @@ export const useUserAuthStore = create<UserAuthStore>((set, get) => ({
             bio: user.bio,
             profileImage: user.profileImage ?? null,
             languages: user.languages,
-            nacionality: user.nationality,
+            nationality: user.nationality,
             socialMedia: user.socialMedia ?? null
           })
         )
