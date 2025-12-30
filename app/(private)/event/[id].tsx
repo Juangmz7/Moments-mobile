@@ -86,6 +86,7 @@ export default function EventDetailScreen() {
         
         ListHeaderComponent={
           <EventDetailListHeader
+            isMe={isMe}
             event={event}
             onOrganiserPress={handleProfileNavigation}
           />
