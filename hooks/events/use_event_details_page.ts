@@ -105,9 +105,11 @@ export const useEventDetailPage = () => {
     };
     
     const handleProfileNavigation = (userId: string) => {
-        console.log("Navigate to profile:", userId);
-    };
-
+        router.push({
+            pathname: "/(private)/user/[id]",
+            params: { id: userId },
+        });
+    }
     const handleGoToChatListScreen = () => {
         router.push("/(private)/(tabs)/chats_screen")
     };

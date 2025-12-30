@@ -63,5 +63,10 @@ export class UserProfileDataSourceImpl implements UserProfileDataSource {
     );
     return mapProfileToFrontend(dto);
   }
+
+  async getUserById(id: string): Promise<UserProfile> {
+    console.log("Fetching user profile for ID:", id);
+    return this.api.get<UserProfile>(`/user/${id}`, {}, true);
+  }
 }
 

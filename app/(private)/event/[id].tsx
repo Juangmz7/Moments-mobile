@@ -96,7 +96,7 @@ export default function EventDetailScreen() {
             <ParticipantCard
               participantName={isMe(item.profile.name) ? "You" : item.profile.name}
               participantImage={item.profile.profileImage ?? ""}
-              onPress={() => handleProfileNavigation(item.id)}
+              onPress={() => handleProfileNavigation(item.profile.id)}
             />
           </View>
         )}
