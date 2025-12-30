@@ -37,7 +37,7 @@ export const EventDetailListHeader = ({ event, onOrganiserPress }: EventDetailLi
           key={event.organiser.id}
           participantName={event.organiser.profile.name}
           participantImage={event.organiser.profile.profileImage ?? ""}
-          onPress={() => onOrganiserPress(event.organiser.id)}
+          onPress={() => onOrganiserPress(event.organiser.profile.id)}
         />
 
         <View style={styles.divider} />
