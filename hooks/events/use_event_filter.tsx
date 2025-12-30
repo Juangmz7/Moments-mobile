@@ -1,6 +1,6 @@
 import DropdownInput from "@/components/shared/drop_down_input";
 import { FilterTag, FilterTagLabel } from "@/domain/model/enums/filter_tag";
-import { DateMapper } from "@/shared/utils/date_maper";
+import { DateMapper } from "@/shared/utils/date_mapper";
 // Adjust import path to where your mapper is located
 import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useState } from "react";
