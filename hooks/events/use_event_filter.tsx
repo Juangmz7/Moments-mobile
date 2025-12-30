@@ -1,5 +1,7 @@
 import DropdownInput from "@/components/shared/drop_down_input";
 import { FilterTag, FilterTagLabel } from "@/domain/model/enums/filter_tag";
+import { DateMapper } from "@/shared/utils/date_maper";
+// Adjust import path to where your mapper is located
 import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useState } from "react";
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -27,14 +29,8 @@ export function useEventFilter({
             onSubmit={(value) => {
               const trimmed = value.trim();
               if (!trimmed) return;
-
-              // 1. Update the specific data state
               onLocationChange(trimmed);
-              
-              // 2. Switch the mode to Location
               onModeChange(FilterTag.Location);
-            
-              // 3. Close the modal (The useEffect in DiscoverPage will trigger the fetch)
               onClose();
             }}
             onCancel={() => onClose()}
@@ -43,18 +39,12 @@ export function useEventFilter({
       ],
 
       [
-        // TODO: Format date & create another component for it
         FilterTagLabel[FilterTag.Date],
         () => (
           <DateFilterContent
             onConfirm={(selectedDate) => {
-              // 1. Update the specific data state (YYYY-MM-DD)
               onDateChange(selectedDate);
-
-              // 2. Switch the mode to Date
               onModeChange(FilterTag.Date);
-
-              // 3. Close
               onClose();
             }}
             onCancel={onClose}
@@ -66,7 +56,7 @@ export function useEventFilter({
 }
 
 interface DateFilterContentProps {
-  onConfirm: (date: string) => void; // date in YYYY-MM-DD
+  onConfirm: (date: string) => void; 
   onCancel: () => void;
 }
 
@@ -75,9 +65,17 @@ function DateFilterContent({ onConfirm, onCancel }: DateFilterContentProps) {
   const [showPicker, setShowPicker] = useState(false);
 
   const handleApply = () => {
-    const isoDate = value.toISOString().split("T")[0]; // YYYY-MM-DD
-    onConfirm(isoDate);
+    // 1. Reset time to 00:00:00
+    const startOfDay = DateMapper.toStartOfDay(value);
+    
+    // 2. Map to YYYY-MM-DD
+    const formattedDate = DateMapper.toPersistence(startOfDay);
+    
+    onConfirm(formattedDate);
   };
+
+  // Helper for UI display only
+  const displayDate = DateMapper.toPersistence(value);
 
   return (
     <View style={styles.card}>
@@ -88,7 +86,7 @@ function DateFilterContent({ onConfirm, onCancel }: DateFilterContentProps) {
         onPress={() => setShowPicker(true)}
       >
         <Text style={styles.dateBoxText}>
-          {value.toISOString().split("T")[0]}
+          {displayDate}
         </Text>
       </TouchableOpacity>
 
@@ -101,7 +99,11 @@ function DateFilterContent({ onConfirm, onCancel }: DateFilterContentProps) {
             if (Platform.OS !== "ios") {
               setShowPicker(false);
             }
-            if (selected) setValue(selected);
+            if (selected) {
+                // We keep the time as-is during selection to avoid jumping,
+                // stripping happens on 'Apply'
+                setValue(selected);
+            }
           }}
         />
       )}
