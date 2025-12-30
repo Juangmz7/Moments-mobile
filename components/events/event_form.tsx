@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { Alert, Image, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { launchImageLibrary } from "react-native-image-picker";
 import { InterestSelector } from "../shared/interest_selector";
+// 1. IMPORTAR EL MAPPER
+import { DateMapper } from "@/shared/utils/date_mapper";
 
 // Define the structure of the event form data
 export interface EventFormData {
@@ -157,7 +159,7 @@ export default function EventForm({
             style={styles.input}
           />
 
-          {/* --- INTERESTS SECTION (ADDED) --- */}
+          {/* --- INTERESTS SECTION --- */}
           <Text style={styles.fieldLabel}>Interests</Text>
           <InterestSelector
             // Convert Array -> String for the component
@@ -231,7 +233,8 @@ export default function EventForm({
                     0
                   );
                   setStartDateValue(combined);
-                  setForm((prev) => ({ ...prev, startDate: combined.toISOString() }));
+                  // 2. CORREGIDO: Usar toISOStringLocal
+                  setForm((prev) => ({ ...prev, startDate: DateMapper.toISOStringLocal(combined) }));
                 }
               }}
             />
@@ -269,7 +272,8 @@ export default function EventForm({
                     0
                   );
                   setStartDateValue(combined);
-                  setForm((prev) => ({ ...prev, startDate: combined.toISOString() }));
+                  // 3. CORREGIDO: Usar toISOStringLocal
+                  setForm((prev) => ({ ...prev, startDate: DateMapper.toISOStringLocal(combined) }));
                 }
               }}
             />
@@ -304,7 +308,8 @@ export default function EventForm({
                     0
                   );
                   setEndDateValue(combined);
-                  setForm((prev) => ({ ...prev, endDate: combined.toISOString() }));
+                  // 4. CORREGIDO: Usar toISOStringLocal
+                  setForm((prev) => ({ ...prev, endDate: DateMapper.toISOStringLocal(combined) }));
                 }
               }}
             />
@@ -342,7 +347,8 @@ export default function EventForm({
                     0
                   );
                   setEndDateValue(combined);
-                  setForm((prev) => ({ ...prev, endDate: combined.toISOString() }));
+                  // 5. CORREGIDO: Usar toISOStringLocal
+                  setForm((prev) => ({ ...prev, endDate: DateMapper.toISOStringLocal(combined) }));
                 }
               }}
             />
@@ -370,7 +376,6 @@ export default function EventForm({
   );
 }
 
-// Styles for the modal and form
 const styles = StyleSheet.create({
   modalHeader: {
     fontSize: 20,
@@ -438,7 +443,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 20,
-    marginBottom: 20, // Added margin bottom for scroll view breathing room
+    marginBottom: 20,
   },
   cancelButton: { color: "#555", fontSize: 16 },
   saveButton: { color: "#007AFF", fontWeight: "bold", fontSize: 16 },

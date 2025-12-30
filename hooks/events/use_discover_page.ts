@@ -4,6 +4,7 @@ import { FilterTag } from "@/domain/model/enums/filter_tag";
 import { InterestTag } from "@/domain/model/enums/interest_tag";
 import { EventRepository } from "@/domain/repository/events/event_repository";
 import { useEventFilter } from "@/hooks/events/use_event_filter";
+import { DateMapper } from "@/shared/utils/date_mapper"; 
 import { useEventFilterStore } from "@/store/events/use_event_filter_store";
 import { useEventsStore } from "@/store/events/use_events_store_factory";
 import { useUserEventStore } from "@/store/events/user_events_store";
@@ -27,8 +28,10 @@ export const useDiscoverPage = () => {
     // --- Local Search State (Strategy Inputs) ---
     const [tagMode, setTagMode] = useState<FilterTag>(FilterTag.Location);
     const [location, setLocation] = useState(userCity);
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]); // YYYY-MM-DD
-
+    
+    // CHANGED: Use DateMapper to ensure local date is used, not UTC
+    const [date, setDate] = useState(DateMapper.toISOStringLocal(new Date()));
+    
     // --- UI State ---
     const [showForm, setShowForm] = useState(false);
     const [activeFilterRender, setActiveFilterRender] = useState<(() => React.ReactNode) | null>(null);
@@ -66,6 +69,7 @@ export const useDiscoverPage = () => {
         onModeChange: setTagMode,
     });
 
+    // Use Object.values logic we discussed earlier if InterestTag is a String Enum
     const filterButtons = Object.values(InterestTag).map((tag) => ({
         key: tag,
         label: tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase(),

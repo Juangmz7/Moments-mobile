@@ -65,11 +65,9 @@ function DateFilterContent({ onConfirm, onCancel }: DateFilterContentProps) {
   const [showPicker, setShowPicker] = useState(false);
 
   const handleApply = () => {
-    // 1. Reset time to 00:00:00
+
     const startOfDay = DateMapper.toStartOfDay(value);
-    
-    // 2. Map to YYYY-MM-DD
-    const formattedDate = DateMapper.toPersistence(startOfDay);
+    const formattedDate = DateMapper.toISOStringLocal(startOfDay);    
     
     onConfirm(formattedDate);
   };
