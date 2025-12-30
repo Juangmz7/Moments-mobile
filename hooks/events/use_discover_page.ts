@@ -14,6 +14,7 @@ export const useDiscoverPage = () => {
 
     // User Profile data for initial state
     const userProfile = useUserProfileStore((s) => s.profile);
+    const fetchProfile = useUserProfileStore((s) => s.fetchProfile);
     const userCity = userProfile?.city || ""
     const interestFilter = useEventFilterStore((s) => s.interestFilter);
 
@@ -38,6 +39,18 @@ export const useDiscoverPage = () => {
             : userCity === "" ?
               "Fill in your city at your profile or activate your location to see local events 📍"
               : "No events in " + userCity + " yet  😕"
+
+    // Initial fetch for user profile
+    useEffect(() => {
+        if (!userProfile) {
+            fetchProfile()
+        }
+    }, [userProfile, fetchProfile])
+
+    // Listener for changes at the profile
+    useEffect(() => {
+        setLocation(userProfile?.city || "")
+    }, [userProfile?.city])
 
     // --- Helpers ---
     const closeFilter = () => {
