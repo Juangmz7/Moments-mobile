@@ -56,6 +56,47 @@ Moments is a school project currently under development.
 
 ---
 
+## 🧪 Frontend Setup (Local Development)
+
+This repository contains the frontend of the CampusConnect application.  
+The backend API must be running for the app to function correctly.
+
+---
+
+### Requirements
+- Node.js
+- Expo CLI
+- Git
+
+---
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/bisitelli/moments.git
+   cd moments
+
+2. Create environment configuration file:
+   cp env.template .env
+
+3. Update the environment variables as needed.
+
+### Running the App
+
+1. Install dependencies:
+   npm install
+
+2. Start the Expo development server:
+   npx expo start
+
+3. Run the app using:
+   Android emulator or physical device
+   iOS simulator (macOS only)
+   Note: Due to Google Authentication limitations, Expo Go is not supported. Please use an emulator or simulator to run the app.
+
+---
+
 ## 🙌 Vision
 
 Our goal is to make student life more social, inclusive, and connected by lowering the barrier to meeting new people and discovering new experiences.
