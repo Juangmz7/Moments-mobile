@@ -32,3 +32,38 @@ Whether you're a new student or just looking to expand your network, CampusConne
   - When joining an event, users are added to a group chat
   - Chat with other participants before, during, and after the event
   - Make it easier to break the ice and coordinate plans
+
+ ## 🛠️ Tech Stack
+
+- **Mobile App:** Expo & React Native  
+- **Backend API:** Java & Spring Boot  
+- **Database:** PostgreSQL  
+- **Authentication:** Java-based authentication (e.g. Spring Security / JWT)
+
+---
+
+## 🎓 Who Is It For?
+
+- University and college students  
+- Exchange and international students  
+- Anyone looking to be more social during their studies  
+
+---
+
+## 📚 Project Status
+
+Moments is a school project currently under development.
+
+---
+
+## 🙌 Vision
+
+Our goal is to make student life more social, inclusive, and connected by lowering the barrier to meeting new people and discovering new experiences.
+
+---
+
+## 📄 License
+
+This project was created as part of a school project.
+
+Licensing details may be updated in the future.
