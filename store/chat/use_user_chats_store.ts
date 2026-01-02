@@ -3,6 +3,7 @@ import { ChatMessage } from '@/domain/model/entities/chat/chat_message';
 import { UserChatsView } from '@/domain/model/entities/chat/user_chat_view';
 import { getErrorMessage } from '@/shared/utils/error_utils';
 import { create } from 'zustand';
+import { useUserAuthStore } from '../auth/use_auth_store';
 
 interface UserChatsState {
     chats: UserChatsView[];
@@ -185,13 +186,16 @@ export const useUserChatsStore = create<UserChatsState>((set, get) => ({
     const otherChats = currentChats.filter((c) => c.id !== newMessage.chatId);
 
     // Update unseen messages count
-    state.incrementUnseenMessagesCount(newMessage.chatId);
+    const user = useUserAuthStore.getState().user
 
+    if (newMessage.senderName !== user?.username) {
+        console.log("Incrementing unseen for chat:", newMessage.chatId);
+        state.incrementUnseenMessagesCount(newMessage.chatId);
+    }
     // Add the updated chat to the absolute top of the array
     set({
       chats: [chatToUpdate, ...otherChats],
     });
 
-    console.log("Updated chat last message in store for chatId:", newMessage.chatId);
   },
 }));

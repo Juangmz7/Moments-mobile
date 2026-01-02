@@ -104,12 +104,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
         try {
             await container.chatRepository.markAsRead(chatId, lastMessage.id);
+            console.log(`Marked messages as read up to message ID: ${lastMessage.content}`);
         } catch (error) {
             // Fail silently or log (background operation)
             set({
                 error: getErrorMessage(error)
             }) 
-            console.error("Failed to send last message seen:", error);
         }
     },
 }));
