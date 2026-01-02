@@ -152,20 +152,43 @@ export class ApiServiceImpl implements ApiService {
     return res.data;
   }
 
-  async post<T>(endpoint: string, body?: Record<string, unknown>, _auth = true): Promise<T> {
+  async post<T>(endpoint: string, body?: unknown, _auth = true): Promise<T> {
+    // If body is FormData, use native fetch for robustness with file uploads
+    if (body instanceof FormData) {
+      return this.requestWithFetch<T>("POST", endpoint, body, _auth);
+    }
+
+    // Standard JSON request via Axios
+    const config = {
+      skipAuth: !_auth,
+      headers: { "Content-Type": "application/json" } as any,
+    };
+
     const res = await this.client.post<T>(
       endpoint,
       body,
-      { skipAuth: !_auth } as AuthedAxiosRequestConfig
+      config as AuthedAxiosRequestConfig
     );
     return res.data;
   }
 
-  async put<T>(endpoint: string, body?: Record<string, unknown>, _auth = true): Promise<T> {
+
+  async put<T>(endpoint: string, body?: unknown, _auth = true): Promise<T> {
+    // If body is FormData, use native fetch
+    if (body instanceof FormData) {
+      return this.requestWithFetch<T>("PUT", endpoint, body, _auth);
+    }
+
+    // Standard JSON request via Axios
+    const config = {
+      skipAuth: !_auth,
+      headers: { "Content-Type": "application/json" } as any,
+    };
+
     const res = await this.client.put<T>(
       endpoint,
       body,
-      { skipAuth: !_auth } as AuthedAxiosRequestConfig
+      config as AuthedAxiosRequestConfig
     );
     return res.data;
   }
@@ -177,4 +200,51 @@ export class ApiServiceImpl implements ApiService {
     );
     return res.data;
   }
+
+  // === Private Helper: Native Fetch for Multipart Requests ===
+  // React Native's Axios adapter struggles with Multipart boundaries.
+  // Native fetch handles binary streams more reliably on Android/iOS.
+  private async requestWithFetch<T>(
+    method: "POST" | "PUT", 
+    endpoint: string, 
+    formData: FormData, 
+    _auth: boolean
+  ): Promise<T> {
+    const url = `${this.client.defaults.baseURL}${endpoint}`;
+    
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+      // CRITICAL: Do NOT set Content-Type. 
+      // The browser/engine automatically sets it to 'multipart/form-data; boundary=...'
+    };
+
+    if (_auth) {
+      const token = await AsyncStorage.getItem(StorageType.ACCESS_TOKEN);
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+
+    try {
+      const response = await fetch(url, {
+        method: method,
+        headers: headers,
+        body: formData,
+      });
+
+      const textResponse = await response.text();
+
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}: ${textResponse}`);
+      }
+
+      // Return empty object if response body is empty, otherwise parse JSON
+      return textResponse ? JSON.parse(textResponse) : ({} as T);
+
+    } catch (error) {
+      // Re-throw to be handled by the caller (ViewModel/UI)
+      throw error;
+    }
+  }
+
 }

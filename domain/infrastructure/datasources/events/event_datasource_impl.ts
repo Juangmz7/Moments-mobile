@@ -37,6 +37,7 @@ export class EventDataSourceImpl implements EventDataSource {
   /** GET /api/events/{eventId} */
   async getEventById(eventId: string): Promise<EventItem> {
     const response = await this.api.get<EventResponseDTO>(`/events/${eventId}`);
+    console.log("Fetched event by ID:", JSON.stringify(response));
     return mapEventToFrontend(response);
   }
 
@@ -106,8 +107,9 @@ export class EventDataSourceImpl implements EventDataSource {
   }
   
   /** POST /api/events (auth) */
-  async createEvent(request: EventRequestDTO): Promise<EventItem> {
-    const response = await this.api.post<EventResponseDTO>(`/events`, request);
+  async createEvent(request: FormData): Promise<EventItem> {        
+        const response = await this.api.post<EventResponseDTO>(`/events`, request);
+        console.log("Subscribing response event:", JSON.stringify(response));
     return mapEventToFrontend(response);
   }
 
@@ -122,7 +124,7 @@ export class EventDataSourceImpl implements EventDataSource {
   }
 
   /** PUT /api/events/{eventId} (auth) */
-  async updateEvent(eventId: string, request: EventRequestDTO): Promise<EventItem> {
+  async updateEvent(eventId: string, request: FormData): Promise<EventItem> {
     const response = await this.api.put<EventResponseDTO>(`/events/${eventId}`, request, true);
     return mapEventToFrontend(response);
   }

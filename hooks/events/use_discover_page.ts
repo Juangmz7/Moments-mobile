@@ -123,7 +123,28 @@ export const useDiscoverPage = () => {
     };
 
     const handleFormSubmit = (data: EventFormData) => {
-        createEvent(mapEventFormToDTO(data));
+        const formData = new FormData();
+
+        // PREPARE JSON: Map form data to DTO structure
+        const eventDto = mapEventFormToDTO(data); 
+        formData.append("data", JSON.stringify(eventDto));
+
+        // PREPARE IMAGE:
+        if (data.image) {
+            const uri = data.image;
+            const filename = uri.split('/').pop() || "image.jpg";
+            const match = /\.(\w+)$/.exec(filename);
+            const type = match ? `image/${match[1]}` : `image/jpeg`;
+
+            formData.append("image", {
+                uri: uri,
+                name: filename,
+                type: type,
+            } as any);
+        }
+
+        // Pass the FormData object to your store
+        createEvent(formData);
         setShowForm(false);
     };
 

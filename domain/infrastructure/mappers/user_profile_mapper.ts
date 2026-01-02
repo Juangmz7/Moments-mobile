@@ -3,15 +3,19 @@ import { UserProfile } from "@/domain/model/entities/events/user_profile";
 import { InterestTag } from "@/domain/model/enums/interest_tag";
 
 
-/**
- * Helper to convert Java Base64 image string into a valid Src for HTML.
- * Checks if the prefix exists, otherwise adds it.
- */
-export const processImage = (base64Image: string | null | undefined): string | undefined => {
-    if (!base64Image || base64Image === "null") return undefined;
-    return base64Image.startsWith('data:') 
-        ? base64Image 
-        : `data:image/jpeg;base64,${base64Image}`;
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://10.0.2.2:8080/api";
+
+export const processImage = (imageName: string | null | undefined): string | null => {
+  console.log("Received image name:", imageName);
+  if (!imageName) return null;
+
+  // If it's already a complete URL (e.g. from Google or external), return it
+  if (imageName.startsWith("http") || imageName.startsWith("https")) {
+    return imageName;
+  }
+
+  // If it's just a filename, prepend your backend endpoint
+  return `${BASE_URL}/api/uploads/${imageName}`;
 };
 
 const DEFAULT_PROFILE: UserProfile = {

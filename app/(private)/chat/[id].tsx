@@ -19,6 +19,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { format, parseISO, isSameDay, isToday, isYesterday } from 'date-fns';
 import { Ionicons } from '@expo/vector-icons';
+import { processImage } from '@/domain/infrastructure/mappers/user_profile_mapper';
 
 export default function ConversationScreen() {
     const router = useRouter();
@@ -27,6 +28,7 @@ export default function ConversationScreen() {
     const chatId = Array.isArray(id) ? id[0] : id;
     const chatTitle = Array.isArray(name) ? name[0] : name; 
     const chatImage = Array.isArray(image) ? image[0] : (image ?? ""); 
+    const eventChatImage = processImage(chatImage)
     const eventChatId = Array.isArray(eventId) ? eventId[0] : (eventId); 
     const user = useUserAuthStore((state) => state.user);
 
@@ -76,6 +78,7 @@ export default function ConversationScreen() {
 
     const renderMessage = useCallback(({ item, index }: { item: ChatMessage, index: number }) => {
         const isMe = item.senderName === user!.username;
+        const userPictureUri = processImage(item.senderProfilePictureUrl);
         const currentMessageDate = parseISO(item.sentAt);
         
         const olderMessage = reversedMessages[index + 1];
@@ -89,10 +92,10 @@ export default function ConversationScreen() {
         try { timeString = format(currentMessageDate, 'HH:mm'); } catch (e) {}
 
         const renderAvatar = () => {
-            if (item.senderProfilePictureUrl) {
+            if (userPictureUri) {
                 return (
                     <Image 
-                        source={{ uri: item.senderProfilePictureUrl }} 
+                        source={{ uri: userPictureUri }} 
                         style={styles.avatar}
                     />
                 );
@@ -178,8 +181,8 @@ export default function ConversationScreen() {
                         activeOpacity={0.7}
                     >
                         {/* Event Image or Fallback Letter */}
-                        {chatImage !== "" ? (
-                            <Image source={{ uri: chatImage }} style={styles.headerImage} />
+                        {eventChatImage ? (
+                            <Image source={{ uri: eventChatImage }} style={styles.headerImage} />
                         ) : (
                             <View style={[styles.headerImage, styles.headerImageFallback]}>
                                 <Text style={styles.headerFallbackText}>

@@ -15,6 +15,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { UserChatsView } from "@/domain/model/entities/chat/user_chat_view";
 import { useUserChatListSocket } from "@/hooks/chat/use_user_chat_list_socket";
 import { useUserAuthStore } from "@/store/auth/use_auth_store";
+import { processImage } from "@/domain/infrastructure/mappers/user_profile_mapper";
 
 export default function ChatsScreen() {
     const router = useRouter();
@@ -74,7 +75,7 @@ export default function ChatsScreen() {
     };
 
     const renderItem = ({ item }: { item: UserChatsView }) => {
-        const imageUri = item.eventImage ?? "";
+        const imageUri = processImage(item.eventImage)
         const isMe = item.lastMessage?.senderName === user?.username;
         const lastMessageUsername = isMe ? "You" : item.lastMessage?.senderName;
 
@@ -84,7 +85,7 @@ export default function ChatsScreen() {
                     item.id, item.eventName, item.eventId,item.eventImage
                 )
                 }>
-                {imageUri !== "" ? (
+                {imageUri ? (
                     <Image source={{ uri: imageUri }} style={styles.avatar} />
                 ) : (
                     <View style={[styles.avatar, styles.placeholderAvatar]}>
