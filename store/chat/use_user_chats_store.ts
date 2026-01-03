@@ -7,7 +7,7 @@ import { useUserAuthStore } from '../auth/use_auth_store';
 
 interface UserChatsState {
     chats: UserChatsView[];
-    unSeenMessagesCount: Map<string, number> // Map of chatId to unseen message count
+    unSeenMessagesCount: Record<string, number>; // Changed from Map to Record (Object)
 
     isLoading: boolean;
     error: string | null;
@@ -28,15 +28,14 @@ interface UserChatsState {
     
     // Async Actions
     fetchUserChats: () => Promise<void>;
-    refreshUserChats: () => Promise<void>; // New action
+    refreshUserChats: () => Promise<void>; 
 
     updateChatLastMessage: (message: ChatMessage) => void;
-
 }
 
 export const useUserChatsStore = create<UserChatsState>((set, get) => ({
     chats: [],
-    unSeenMessagesCount: new Map<string, number>(),
+    unSeenMessagesCount: {}, // Initialize as an empty plain object
     isLoading: false,
     page: 0,
     hasMore: true,
@@ -44,35 +43,37 @@ export const useUserChatsStore = create<UserChatsState>((set, get) => ({
 
     setChats: (chats) => set({ chats }),
 
-    setUnseenMessagesCount: (chatId, count) =>{
-        // Update current state with a new reference to trigger reactivity
-        const currentUnseenMessages = new Map(get().unSeenMessagesCount)
-        currentUnseenMessages.set(chatId, count)
-
-        set({
-            unSeenMessagesCount: currentUnseenMessages
-        })
+    setUnseenMessagesCount: (chatId, count) => {
+        // Create a shallow copy of the record and update the specific key
+        set((state) => ({
+            unSeenMessagesCount: {
+                ...state.unSeenMessagesCount,
+                [chatId]: count
+            }
+        }));
     },
 
     incrementUnseenMessagesCount: (chatId) => {
         const state = get();
-        const currentCount = state.unSeenMessagesCount.get(chatId) || 0;
+        // Access property using bracket notation
+        const currentCount = state.unSeenMessagesCount[chatId] || 0;
 
-        state.setUnseenMessagesCount(chatId, currentCount + 1)
+        state.setUnseenMessagesCount(chatId, currentCount + 1);
     },
 
-    decrementUnseenMessagesCount: (chatId) =>{
+    decrementUnseenMessagesCount: (chatId) => {
         const state = get();
-        const currentCount = state.unSeenMessagesCount.get(chatId) || 0;
+        // Access property using bracket notation
+        const currentCount = state.unSeenMessagesCount[chatId] || 0;
         
-        state.setUnseenMessagesCount(chatId, currentCount - 1)
+        // Prevent negative numbers
+        const newCount = currentCount > 0 ? currentCount - 1 : 0;
+        state.setUnseenMessagesCount(chatId, newCount);
     },
-
 
     resetUnseenMessagesCount: (chatId) => {
-        get().setUnseenMessagesCount(chatId, 0)
+        get().setUnseenMessagesCount(chatId, 0);
     },
-
 
     appendChats: (incomingChats) => set((state) => {
         const uniqueChats = incomingChats.filter(
@@ -86,12 +87,13 @@ export const useUserChatsStore = create<UserChatsState>((set, get) => ({
         page: 0, 
         hasMore: true, 
         isLoading: false,
-        error: null
+        error: null,
+        unSeenMessagesCount: {} // Reset to empty object
     }),
 
     // Standard pagination fetch
     fetchUserChats: async () => {
-        const { page, hasMore, isLoading, appendChats, setChats, setUnseenMessagesCount } = get();
+        const { page, hasMore, isLoading, appendChats, setChats } = get();
 
         if (isLoading || (!hasMore && page !== 0)) return;
 
@@ -106,16 +108,17 @@ export const useUserChatsStore = create<UserChatsState>((set, get) => ({
                 appendChats(response.chats);
             }
 
-            // Initialize unseen messages count for new chats
-            const unseenMap = new Map<string, number>(get().unSeenMessagesCount);
-            response.chats.forEach(
-                (chat) => unseenMap.set(chat.id, chat.unseenMessagesCount)
-            )
+            // Initialize unseen messages count for new chats using Object spread
+            const unseenRecord = { ...get().unSeenMessagesCount }; // Copy existing record
+            
+            response.chats.forEach((chat) => {
+                unseenRecord[chat.id] = chat.unseenMessagesCount; // Assign value
+            });
 
             set((state) => ({
                 hasMore: response.hasMore,
                 page: state.page + 1,
-                unSeenMessagesCount: unseenMap
+                unSeenMessagesCount: unseenRecord
             }));
 
         } catch (error: unknown) {
@@ -128,26 +131,26 @@ export const useUserChatsStore = create<UserChatsState>((set, get) => ({
     refreshUserChats: async () => {
         const { isLoading } = get();
         
-        // Prevent refresh if already loading to avoid race conditions
         if (isLoading) return; 
 
         set({ isLoading: true });
 
         try {
-            // Force fetch page 0
             const response = await container.chatRepository.getUserChats(0);
 
             // Initialize unseen messages count for new chats
-            const unseenMap = new Map<string, number>();
-            response.chats.forEach(
-                (chat) => unseenMap.set(chat.id, chat.unseenMessagesCount)
-            )
+            const unseenRecord: Record<string, number> = {}; // Start fresh for refresh
+            
+            response.chats.forEach((chat) => {
+                unseenRecord[chat.id] = chat.unseenMessagesCount;
+            });
 
             set({
-                chats: response.chats, // Replace entire list
+                chats: response.chats, 
                 hasMore: response.hasMore,
-                page: 1, // Reset page counter to 1 (since we just got 0)
-                error: null
+                page: 1, 
+                error: null,
+                unSeenMessagesCount: unseenRecord // Update record
             });
 
         } catch (error: unknown) {
@@ -158,41 +161,31 @@ export const useUserChatsStore = create<UserChatsState>((set, get) => ({
     },
 
    updateChatLastMessage: (newMessage) => {
-
     const state = get();
        
     const currentChats = state.chats;
     const chatIndex = currentChats.findIndex((c) => c.id === newMessage.chatId);
 
-    // Chat not found locally
-    // If a brand new chat arrives via socket but isn't in the list yet,
-    // we can't update it because we lack the Chat Metadata (User name, Avatar, etc).
-    // It is best to trigger a fetch here or ignore it until the user refreshes.
     if (chatIndex === -1) {
         state.fetchUserChats();
         return;
     }
 
-    // Prepare update
     const chatToUpdate = {
       ...currentChats[chatIndex],
-      // Update the last message
       lastMessage: newMessage, 
       updatedAt: newMessage.sentAt || new Date().toISOString(),      
     };
 
-    // Reorder 
-    // Remove the old version of the chat
     const otherChats = currentChats.filter((c) => c.id !== newMessage.chatId);
 
-    // Update unseen messages count
-    const user = useUserAuthStore.getState().user
+    const user = useUserAuthStore.getState().user;
 
     if (newMessage.senderName !== user?.username) {
         console.log("Incrementing unseen for chat:", newMessage.chatId);
         state.incrementUnseenMessagesCount(newMessage.chatId);
     }
-    // Add the updated chat to the absolute top of the array
+    
     set({
       chats: [chatToUpdate, ...otherChats],
     });

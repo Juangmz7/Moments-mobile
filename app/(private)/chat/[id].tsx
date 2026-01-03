@@ -24,6 +24,7 @@ import { useUserChatsStore } from '@/store/chat/use_user_chats_store';
 
 export default function ConversationScreen() {
     const router = useRouter();
+    // Retrieve unseenCount from params
     const { id, name, image, eventId } = useLocalSearchParams(); 
     
     const chatId = Array.isArray(id) ? id[0] : id;
@@ -35,6 +36,8 @@ export default function ConversationScreen() {
 
     const { resetUnseenMessagesCount } = useUserChatsStore();
     const { sendLastMessageSeen } = useChatStore();
+
+    const unseenMessagesCount = useUserChatsStore((state) => state.unSeenMessagesCount[chatId]);
 
     // Layout Hooks
     const insets = useSafeAreaInsets();
@@ -108,6 +111,8 @@ export default function ConversationScreen() {
         const isLastInGroup = !newerMessage || newerMessage.senderName !== item.senderName;
         const isFirstInGroup = !olderMessage || olderMessage.senderName !== item.senderName || showDateHeader;
 
+        const showUnseenBanner = unseenMessagesCount! > 0 && index === unseenMessagesCount! - 1;
+
         let timeString = "";
         try { timeString = format(currentMessageDate, 'HH:mm'); } catch (e) {}
 
@@ -136,6 +141,17 @@ export default function ConversationScreen() {
                         <Text style={styles.dateHeaderText}>
                             {getDateLabel(item.sentAt)}
                         </Text>
+                    </View>
+                )}
+
+                {/* The Unseen Messages Banner */}
+                {showUnseenBanner && (
+                    <View style={styles.unseenBannerContainer}>
+                        <View style={styles.unseenBannerBox}>
+                             <Text style={styles.unseenBannerText}>
+                                {unseenMessagesCount} unseen message{unseenMessagesCount > 1 ? "s" : ""}
+                             </Text>
+                        </View>
                     </View>
                 )}
 
@@ -359,6 +375,30 @@ const styles = StyleSheet.create({
         color: '#8E8E8E',
         fontSize: 12,
         fontWeight: '500',
+    },
+
+    // --- UNSEEN BANNER (New Styles) ---
+    unseenBannerContainer: {
+        alignItems: 'center',
+        marginVertical: 12,
+        width: '100%',
+        justifyContent: 'center',
+    },
+    unseenBannerBox: {
+        backgroundColor: '#E3F2FD', // Very light blue
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 12,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 1,
+        elevation: 1,
+    },
+    unseenBannerText: {
+        color: '#1976D2', // Darker blue text
+        fontSize: 12,
+        fontWeight: '600',
     },
 
     // --- ROWS ---
