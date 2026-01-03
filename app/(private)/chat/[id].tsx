@@ -1,9 +1,14 @@
+import { processImage, processProfileImage } from '@/domain/infrastructure/mappers/user_profile_mapper';
 import { ChatMessage } from '@/domain/model/entities/chat/chat_message';
 import { useChatMessageSocket } from '@/hooks/chat/use_chat_messages_socket';
 import { useUserAuthStore } from '@/store/auth/use_auth_store';
 import { useChatStore } from '@/store/chat/use_chat_messages_store';
-import { useLocalSearchParams, useRouter } from 'expo-router'; 
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useUserChatsStore } from '@/store/chat/use_user_chats_store';
+import { useUserProfileStore } from '@/store/user/use_user_profile_store';
+import { Ionicons } from '@expo/vector-icons';
+import { format, isSameDay, isToday, isYesterday, parseISO } from 'date-fns';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
@@ -17,10 +22,6 @@ import {
     View
 } from 'react-native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { format, parseISO, isSameDay, isToday, isYesterday } from 'date-fns';
-import { Ionicons } from '@expo/vector-icons';
-import { processImage } from '@/domain/infrastructure/mappers/user_profile_mapper';
-import { useUserChatsStore } from '@/store/chat/use_user_chats_store';
 
 export default function ConversationScreen() {
     const router = useRouter();
@@ -34,6 +35,7 @@ export default function ConversationScreen() {
     const eventChatImage = processImage(chatImage)
     const eventChatId = Array.isArray(eventId) ? eventId[0] : (eventId); 
     const user = useUserAuthStore((state) => state.user);
+    const myProfile = useUserProfileStore((s) => s.profile);
 
     const { resetUnseenMessagesCount } = useUserChatsStore();
     const { sendLastMessageSeen } = useChatStore();
@@ -114,8 +116,17 @@ export default function ConversationScreen() {
     };
 
     const renderMessage = useCallback(({ item, index }: { item: ChatMessage, index: number }) => {
+        
         const isMe = item.senderName === user!.username;
-        const userPictureUri = processImage(item.senderProfilePictureUrl);
+
+        // Prefer the logged-in user's saved profile image for "me",
+        // otherwise fall back to whatever the backend sends for other users.
+        let userPictureUri: string | null = null;
+        if (isMe && myProfile?.profileImage) {
+            userPictureUri = myProfile.profileImage;
+        } else if (item.senderProfilePicture) {
+            userPictureUri = processProfileImage(item.senderProfilePicture);
+        }
         const currentMessageDate = parseISO(item.sentAt);
         
         const olderMessage = reversedMessages[index + 1];
@@ -214,7 +225,7 @@ export default function ConversationScreen() {
                 </View>
             </View>
         );
-    }, [reversedMessages, user, newMessagesOffset]); // Added newMessagesOffset to dependencies
+    }, [reversedMessages, user, myProfile, newMessagesOffset]); // Added newMessagesOffset to dependencies
 
     return (
         <View style={styles.container}>
