@@ -234,7 +234,7 @@ graph TD
 
 The app uses Expo Router with file-based routing and typed routes: [15](#0-14) 
 
----
+Whether you're a new student or just looking to expand your network, CampusConnect makes campus life more connected.
 
 ## 💾 State Management
 
@@ -440,19 +440,24 @@ Users can explore activities happening nearby, host their own events, and join o
 ```markdown
 ## ✨ Key Features
 
-- 🔍 **Discover Activities & Events**  
-  Browse events and activities happening around the city and campus.
+- 🗺️ **Discover Activities & Events**
+  - Browse events and activities happening around the city
+  - Find things to do both on and off campus
 
-- ➕ **Create Your Own Events**  
-  Host your own events and invite other students to join.
+- ➕ **Create Your Own Events**
+  - Create and host events for other students
+  - Set event details such as time, location, and description
 
-- 🤝 **Join Events**  
-  Join events that interest you and meet new people.
+- 🤝 **Join Events & Connect**
+  - Join events that interest you
+  - Automatically connect with other participants
 
-- 💬 **Event-Based Group Chat**  
-  Automatically join a group chat when you join an event and chat with other participants.
+- 💬 **Event Group Chat**
+  - When joining an event, users are added to a group chat
+  - Chat with other participants before, during, and after the event
+  - Make it easier to break the ice and coordinate plans
 
-```
+ingeneriro ```
 
 **File:** README.md (L33-38)
 ```markdown
