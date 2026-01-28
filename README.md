@@ -406,12 +406,6 @@ This is a school project. Contributions, issues, and feature requests are welcom
 
 ---
 
-## 📄 License
-
-This project was created as part of a school project. Licensing details may be updated in the future. [27](#0-26) 
-
----
-
 ## Notes
 
 This README provides a comprehensive architectural overview of the CampusConnect mobile application. The project demonstrates professional software engineering practices including:
@@ -477,29 +471,6 @@ Users can explore activities happening nearby, host their own events, and join o
 - University and college students  
 - Exchange and international students  
 - Anyone looking to be more social during their studies  
-```
-
-**File:** README.md (L50-52)
-```markdown
-## 📚 Project Status
-
-Moments is a school project currently under development.
-```
-
-**File:** README.md (L56-58)
-```markdown
-## 🙌 Vision
-
-Our goal is to make student life more social, inclusive, and connected by lowering the barrier to meeting new people and discovering new experiences.
-```
-
-**File:** README.md (L62-66)
-```markdown
-## 📄 License
-
-This project was created as part of a school project.
-
-Licensing details may be updated in the future.
 ```
 
 **File:** dependency_injection/container.ts (L11-32)
